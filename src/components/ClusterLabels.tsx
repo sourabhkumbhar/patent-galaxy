@@ -33,7 +33,19 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
             </Text>
             <Text
               position={[0, -7, 0]}
-              fontSize={3}
+              fontSize={2.5}
+              color="#aaaacc"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.1}
+              outlineColor="#000000"
+              font={undefined}
+            >
+              {cluster.label}
+            </Text>
+            <Text
+              position={[0, -12, 0]}
+              fontSize={2}
               color="#8888aa"
               anchorX="center"
               anchorY="middle"
