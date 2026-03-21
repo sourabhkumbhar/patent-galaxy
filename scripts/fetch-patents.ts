@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const RAW_DIR = resolve(__dirname, '../data-pipeline/raw');
 const OUTPUT_PATH = resolve(__dirname, '../public/data/patents.json');
 
-const TARGET_PATENTS = 500_000;
+const TARGET_PATENTS = 100_000;
 const MIN_YEAR = 2010;
 const MAX_YEAR = 2025;
 
