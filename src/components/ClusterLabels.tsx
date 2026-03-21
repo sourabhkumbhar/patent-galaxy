@@ -21,7 +21,7 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
         return (
           <group key={cluster.label} position={[cluster.x, cluster.y + 40, cluster.z]}>
             <Text
-              fontSize={6}
+              fontSize={5}
               color={cluster.color}
               anchorX="center"
               anchorY="middle"
@@ -29,23 +29,11 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
               outlineColor="#000000"
               font={undefined}
             >
-              {cluster.shortLabel}
+              {cluster.label}
             </Text>
             <Text
               position={[0, -7, 0]}
               fontSize={2.5}
-              color="#aaaacc"
-              anchorX="center"
-              anchorY="middle"
-              outlineWidth={0.1}
-              outlineColor="#000000"
-              font={undefined}
-            >
-              {cluster.label}
-            </Text>
-            <Text
-              position={[0, -12, 0]}
-              fontSize={2}
               color="#8888aa"
               anchorX="center"
               anchorY="middle"
