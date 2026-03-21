@@ -123,7 +123,6 @@ export default function FilterPanel({
                           transition: 'all 0.2s ease',
                         }}
                       />
-                      <span className="font-mono w-8 text-left" style={{ color: isActive ? color : 'inherit' }}>{id}</span>
                       <span className="truncate">{label}</span>
                     </button>
                   );
