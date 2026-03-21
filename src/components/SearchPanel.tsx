@@ -66,7 +66,7 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
   );
 
   return (
-    <div className="fixed top-4 left-4 z-30 w-80">
+    <div className="fixed top-4 left-4 z-40 w-80">
       <div
         className="rounded-lg overflow-hidden"
         style={{

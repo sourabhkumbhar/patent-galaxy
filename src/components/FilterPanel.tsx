@@ -25,7 +25,7 @@ export default function FilterPanel({
 
   return (
     <div
-      className="fixed left-4 top-20 z-30 transition-all"
+      className="fixed left-4 top-24 z-30 transition-all"
       style={{ width: isCollapsed ? 'auto' : 240 }}
     >
       <div
