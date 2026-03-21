@@ -128,10 +128,11 @@ export default function RaycastHandler({
     }
   }, [pointsRef, nodes, filteredIndices, camera, onHover]);
 
-  // Perform raycasting every 3 frames for performance
+  // Throttle raycasting based on point count (more points = less frequent)
+  const raycastInterval = filteredIndices.length > 100_000 ? 6 : 3;
   useFrame(() => {
     frameCount.current++;
-    if (frameCount.current % 3 === 0) {
+    if (frameCount.current % raycastInterval === 0) {
       performRaycast();
     }
   });

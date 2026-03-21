@@ -59,25 +59,47 @@ export default function StarField({
     return geo;
   }, [positions, colors, sizes]);
 
-  // Update sizes for hover/selection highlights
+  // Build a reverse lookup: nodeIndex → filteredIndex (for O(1) highlight updates)
+  const nodeToFilteredIdx = useMemo(() => {
+    const map = new Map<number, number>();
+    for (let i = 0; i < filteredIndices.length; i++) {
+      map.set(filteredIndices[i], i);
+    }
+    return map;
+  }, [filteredIndices]);
+
+  // Track previous hover/selected to reset only changed entries (not all 500k)
+  const prevHovered = useRef<number | null>(null);
+  const prevSelected = useRef<number | null>(null);
+
   useEffect(() => {
     const sizeAttr = geometry.getAttribute('size') as THREE.BufferAttribute;
     if (!sizeAttr) return;
 
-    for (let i = 0; i < filteredIndices.length; i++) {
-      const nodeIndex = filteredIndices[i];
-      let s = originalSizes[i];
+    // Reset previous highlights
+    const resetIdx = (nodeIdx: number | null) => {
+      if (nodeIdx === null) return;
+      const fi = nodeToFilteredIdx.get(nodeIdx);
+      if (fi !== undefined) sizeAttr.array[fi] = originalSizes[fi];
+    };
 
-      if (nodeIndex === hoveredIndex) {
-        s = s * 3.0;
-      } else if (nodeIndex === selectedIndex) {
-        s = s * 2.5;
-      }
+    // Apply new highlights
+    const applyIdx = (nodeIdx: number | null, scale: number) => {
+      if (nodeIdx === null) return;
+      const fi = nodeToFilteredIdx.get(nodeIdx);
+      if (fi !== undefined) sizeAttr.array[fi] = originalSizes[fi] * scale;
+    };
 
-      sizeAttr.array[i] = s;
-    }
+    resetIdx(prevHovered.current);
+    resetIdx(prevSelected.current);
+    applyIdx(selectedIndex, 2.5);
+    applyIdx(hoveredIndex, 3.0);
+
+    prevHovered.current = hoveredIndex;
+    prevSelected.current = selectedIndex;
+
     sizeAttr.needsUpdate = true;
-  }, [hoveredIndex, selectedIndex, filteredIndices, geometry, originalSizes]);
+  }, [hoveredIndex, selectedIndex, nodeToFilteredIdx, geometry, originalSizes]);
 
   // Animate a subtle twinkle
   useFrame(({ clock }) => {

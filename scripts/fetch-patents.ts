@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const RAW_DIR = resolve(__dirname, '../data-pipeline/raw');
 const OUTPUT_PATH = resolve(__dirname, '../public/data/patents.json');
 
-const TARGET_PATENTS = 50_000;
+const TARGET_PATENTS = 500_000;
 const MIN_YEAR = 2010;
 const MAX_YEAR = 2025;
 
@@ -68,9 +68,9 @@ function genPos(section: string, cpcClass: string, rand: () => number) {
   const sy = (rand() + rand() + rand() - 1.5) * 25;
   const sz = (rand() + rand() + rand() - 1.5) * 25;
   return {
-    x: +(c.x + sx + co * Math.cos(cn)).toFixed(2),
-    y: +(c.y + sy).toFixed(2),
-    z: +(c.z + sz + co * Math.sin(cn)).toFixed(2),
+    x: +(c.x + sx + co * Math.cos(cn)).toFixed(1),
+    y: +(c.y + sy).toFixed(1),
+    z: +(c.z + sz + co * Math.sin(cn)).toFixed(1),
   };
 }
 
@@ -243,7 +243,7 @@ async function main() {
 
       allPatents.push({
         patentId: cols[pIdIdx],
-        title: cols[pTitleIdx] || 'Untitled Patent',
+        title: (cols[pTitleIdx] || 'Untitled Patent').slice(0, 100),
         year,
         month: parseInt(dateStr?.substring(5, 7), 10) || 1,
       });
@@ -407,7 +407,7 @@ async function main() {
     nodes.cpcSection.push(cpc.section);
     nodes.cpcClass.push(cpc.cpcClass);
     nodes.cpcSubclass.push(cpc.subclass);
-    nodes.assignee.push(annual?.assignee || 'Individual Inventor');
+    nodes.assignee.push((annual?.assignee || 'Individual Inventor').slice(0, 50));
     nodes.inventorCount.push(annual?.teamSize || 1);
     nodes.citationCount.push(citCount);
     nodes.x.push(pos.x);
