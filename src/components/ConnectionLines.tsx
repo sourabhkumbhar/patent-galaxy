@@ -22,16 +22,28 @@ export default function ConnectionLines({
 }: ConnectionLinesProps) {
   const activeIndex = selectedIndex ?? hoveredIndex;
 
+  // Pre-build adjacency index: nodeIndex → list of edges (avoids O(292k) scan on hover)
+  const adjacency = useMemo(() => {
+    const map = new Map<number, CitationEdge[]>();
+    for (const edge of edges) {
+      let list = map.get(edge.source);
+      if (!list) { list = []; map.set(edge.source, list); }
+      list.push(edge);
+      list = map.get(edge.target);
+      if (!list) { list = []; map.set(edge.target, list); }
+      list.push(edge);
+    }
+    return map;
+  }, [edges]);
+
   const { geometry, color } = useMemo(() => {
     if (activeIndex === null) {
       return { geometry: null, color: '#4488ff' };
     }
 
-    const relevantEdges = edges.filter(
-      (e) => e.source === activeIndex || e.target === activeIndex
-    );
+    const relevantEdges = adjacency.get(activeIndex);
 
-    if (relevantEdges.length === 0) {
+    if (!relevantEdges || relevantEdges.length === 0) {
       return { geometry: null, color: '#4488ff' };
     }
 
@@ -60,7 +72,7 @@ export default function ConnectionLines({
     const nodeColor = nodes[activeIndex]?.color ?? '#4488ff';
 
     return { geometry: geo, color: nodeColor };
-  }, [nodes, edges, activeIndex]);
+  }, [nodes, adjacency, activeIndex]);
 
   if (!geometry) return null;
 

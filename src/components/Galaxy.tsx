@@ -56,7 +56,7 @@ export default function Galaxy({
           alpha: false,
         }}
         style={{ background: '#0a0a12', touchAction: 'none' }}
-        dpr={[1, 1.5]}
+        dpr={[1, filteredIndices.length > 100_000 ? 1 : 1.5]}
       >
         {/* Ambient light for general visibility */}
         <ambientLight intensity={0.1} />
@@ -124,15 +124,25 @@ export default function Galaxy({
           panSpeed={0.5}
         />
 
-        {/* Post-processing bloom */}
-        <EffectComposer>
-          <Bloom
-            intensity={0.8}
-            luminanceThreshold={0.1}
-            luminanceSmoothing={0.9}
-            mipmapBlur
-          />
-        </EffectComposer>
+        {/* Post-processing bloom — lighter at high point counts */}
+        {filteredIndices.length <= 100_000 ? (
+          <EffectComposer>
+            <Bloom
+              intensity={0.8}
+              luminanceThreshold={0.1}
+              luminanceSmoothing={0.9}
+              mipmapBlur
+            />
+          </EffectComposer>
+        ) : (
+          <EffectComposer>
+            <Bloom
+              intensity={0.5}
+              luminanceThreshold={0.3}
+              luminanceSmoothing={0.9}
+            />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );

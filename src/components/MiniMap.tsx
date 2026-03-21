@@ -22,11 +22,18 @@ export default function MiniMapOverlay({ nodes, filteredIndices }: MiniMapOverla
   const frameCount = useRef(0);
 
   const pointData = useMemo(() => {
-    return filteredIndices.map((i) => {
-      const n = nodes[i];
+    // Sample points for minimap — no need to draw all 500k on a 160px canvas
+    const maxPoints = 5000;
+    const step = filteredIndices.length > maxPoints
+      ? Math.ceil(filteredIndices.length / maxPoints)
+      : 1;
+    const result = [];
+    for (let j = 0; j < filteredIndices.length; j += step) {
+      const n = nodes[filteredIndices[j]];
       const rgb = hexToRgb(n.color);
-      return { x: n.x, z: n.z, r: rgb.r, g: rgb.g, b: rgb.b };
-    });
+      result.push({ x: n.x, z: n.z, r: rgb.r, g: rgb.g, b: rgb.b });
+    }
+    return result;
   }, [nodes, filteredIndices]);
 
   // Imperatively create and mount the minimap DOM elements
