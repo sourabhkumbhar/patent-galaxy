@@ -1,21 +1,24 @@
 import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { PatentNode } from '../types/patent';
 
 interface CameraControllerProps {
   nodes: PatentNode[];
   selectedIndex: number | null;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }
 
 /**
  * Smoothly animates the camera to fly toward a selected patent.
- * Positions the camera at an offset from the target so the patent
- * is clearly visible without being directly on top of it.
+ * Disables OrbitControls during the animation and syncs their
+ * target on completion to prevent the snap-back bug.
  */
 export default function CameraController({
   nodes,
   selectedIndex,
+  controlsRef,
 }: CameraControllerProps) {
   const { camera } = useThree();
   const isAnimating = useRef(false);
@@ -48,20 +51,29 @@ export default function CameraController({
 
     startPosition.current.copy(camera.position);
 
-    // Approximate current look-at by projecting forward from camera
-    const currentDir = new THREE.Vector3(0, 0, -1).applyQuaternion(
-      camera.quaternion
-    );
-    startLookAt.current
-      .copy(camera.position)
-      .add(currentDir.multiplyScalar(100));
+    // Get current OrbitControls target as the start look-at point
+    if (controlsRef.current) {
+      startLookAt.current.copy(controlsRef.current.target);
+    } else {
+      const currentDir = new THREE.Vector3(0, 0, -1).applyQuaternion(
+        camera.quaternion
+      );
+      startLookAt.current
+        .copy(camera.position)
+        .add(currentDir.multiplyScalar(100));
+    }
 
     targetPosition.current.copy(nodePos).add(offset);
     targetLookAt.current.copy(nodePos);
 
     progress.current = 0;
     isAnimating.current = true;
-  }, [selectedIndex, nodes, camera]);
+
+    // Disable OrbitControls during animation
+    if (controlsRef.current) {
+      controlsRef.current.enabled = false;
+    }
+  }, [selectedIndex, nodes, camera, controlsRef]);
 
   useFrame((_, delta) => {
     if (!isAnimating.current) return;
@@ -83,10 +95,21 @@ export default function CameraController({
       targetLookAt.current,
       t
     );
-    camera.lookAt(currentLookAt);
+
+    // Sync OrbitControls target throughout the animation
+    if (controlsRef.current) {
+      controlsRef.current.target.copy(currentLookAt);
+      controlsRef.current.update();
+    } else {
+      camera.lookAt(currentLookAt);
+    }
 
     if (progress.current >= 1) {
       isAnimating.current = false;
+      // Re-enable OrbitControls with the final target synced
+      if (controlsRef.current) {
+        controlsRef.current.enabled = true;
+      }
     }
   });
 

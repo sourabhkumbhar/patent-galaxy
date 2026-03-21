@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import StarField from './StarField';
@@ -36,6 +37,7 @@ export default function Galaxy({
   citationPath,
 }: GalaxyProps) {
   const pointsRef = useRef<THREE.Points>(null);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -98,6 +100,7 @@ export default function Galaxy({
         <CameraController
           nodes={data.nodes}
           selectedIndex={filters.selectedPatentIndex}
+          controlsRef={controlsRef}
         />
 
         {/* MiniMap renderer (draws to external canvas) */}
@@ -111,6 +114,7 @@ export default function Galaxy({
 
         {/* Camera controls */}
         <OrbitControls
+          ref={controlsRef}
           enableDamping
           dampingFactor={0.05}
           minDistance={10}
