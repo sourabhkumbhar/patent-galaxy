@@ -1,14 +1,14 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { PatentNode } from '../types/patent';
+import type { DataNode } from '../types/patent';
 
 const TAP_MAX_DURATION = 250; // ms — longer than this is a drag/scroll
 const TAP_MAX_DISTANCE = 8;   // px — moved more than this is a drag/scroll
 
 interface RaycastHandlerProps {
   pointsRef: React.RefObject<THREE.Points | null>;
-  nodes: PatentNode[];
+  nodes: DataNode[];
   filteredIndices: number[];
   onHover: (index: number | null) => void;
   onClick: (index: number | null) => void;

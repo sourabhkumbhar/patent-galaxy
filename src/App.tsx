@@ -9,26 +9,33 @@ import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
 import PathTracerPanel from './components/PathTracerPanel';
 import ShareButton from './components/ShareButton';
-import { usePatentData } from './hooks/usePatentData';
+import ProjectSelector from './components/ProjectSelector';
+import { ProjectProvider } from './config/ProjectContext';
+import { patentConfig } from './config/patents';
+import { paperConfig } from './config/papers';
+import { useProjectData } from './hooks/usePatentData';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useShareState } from './hooks/useShareState';
+import type { ProjectConfig } from './config/types';
 
-export default function App() {
+const PROJECTS: ProjectConfig[] = [patentConfig, paperConfig];
+
+function AppInner({ config }: { config: ProjectConfig }) {
   const {
     data,
     filters,
     filteredIndices,
     setYearRange,
-    setCpcSections,
+    setCategories,
     setMinCitations,
     setSearchQuery,
-    setSelectedPatentIndex,
-    setHoveredPatentIndex,
+    setSelectedIndex,
+    setHoveredIndex,
     isLoading,
     error,
     loadProgress,
     yearBounds,
-  } = usePatentData();
+  } = useProjectData(config);
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [citationPath, setCitationPath] = useState<number[] | null>(null);
@@ -36,53 +43,53 @@ export default function App() {
   useKeyboardNavigation({
     nodes: data?.nodes ?? [],
     filteredIndices,
-    selectedIndex: filters.selectedPatentIndex,
-    onSelect: setSelectedPatentIndex,
-    onHover: setHoveredPatentIndex,
+    selectedIndex: filters.selectedIndex,
+    onSelect: setSelectedIndex,
+    onHover: setHoveredIndex,
   });
 
   const { copyShareUrl } = useShareState({
     yearRange: filters.yearRange,
-    cpcSections: filters.cpcSections,
+    categories: filters.categories,
     minCitations: filters.minCitations,
     searchQuery: filters.searchQuery,
-    selectedPatentIndex: filters.selectedPatentIndex,
+    selectedIndex: filters.selectedIndex,
     setYearRange,
-    setCpcSections,
+    setCategories,
     setMinCitations,
     setSearchQuery,
-    setSelectedPatentIndex,
+    setSelectedIndex,
     isLoading,
   });
 
   const hoveredNode = useMemo(() => {
-    if (!data || filters.hoveredPatentIndex === null) return null;
-    return data.nodes[filters.hoveredPatentIndex] ?? null;
-  }, [data, filters.hoveredPatentIndex]);
+    if (!data || filters.hoveredIndex === null) return null;
+    return data.nodes[filters.hoveredIndex] ?? null;
+  }, [data, filters.hoveredIndex]);
 
   const selectedNode = useMemo(() => {
-    if (!data || filters.selectedPatentIndex === null) return null;
-    return data.nodes[filters.selectedPatentIndex] ?? null;
-  }, [data, filters.selectedPatentIndex]);
+    if (!data || filters.selectedIndex === null) return null;
+    return data.nodes[filters.selectedIndex] ?? null;
+  }, [data, filters.selectedIndex]);
 
-  const handleToggleSection = useCallback(
-    (section: string) => {
-      const next = new Set(filters.cpcSections);
-      if (next.has(section)) {
-        next.delete(section);
+  const handleToggleCategory = useCallback(
+    (category: string) => {
+      const next = new Set(filters.categories);
+      if (next.has(category)) {
+        next.delete(category);
       } else {
-        next.add(section);
+        next.add(category);
       }
-      setCpcSections(next);
+      setCategories(next);
     },
-    [filters.cpcSections, setCpcSections]
+    [filters.categories, setCategories]
   );
 
   const handleNavigate = useCallback(
     (index: number) => {
-      setSelectedPatentIndex(index);
+      setSelectedIndex(index);
     },
-    [setSelectedPatentIndex]
+    [setSelectedIndex]
   );
 
   const yearCounts = useMemo(() => {
@@ -98,10 +105,10 @@ export default function App() {
     return (
       <div
         className="fixed inset-0 flex flex-col items-center justify-center"
-        style={{ background: '#0a0a12' }}
+        style={{ background: config.background }}
       >
         <h2 className="text-xl font-light mb-4" style={{ color: '#e0e0f0' }}>
-          Failed to load patent data
+          Failed to load {config.nodeLabel} data
         </h2>
         <p className="text-sm" style={{ color: '#8888aa' }}>{error}</p>
       </div>
@@ -109,7 +116,7 @@ export default function App() {
   }
 
   if (isLoading || !data) {
-    return <LoadingScreen progress={loadProgress} />;
+    return <LoadingScreen progress={loadProgress} projectName={config.name} />;
   }
 
   return (
@@ -120,8 +127,8 @@ export default function App() {
           data={data}
           filters={filters}
           filteredIndices={filteredIndices}
-          onHover={setHoveredPatentIndex}
-          onClick={setSelectedPatentIndex}
+          onHover={setHoveredIndex}
+          onClick={setSelectedIndex}
           onMouseMove={setMousePos}
           citationPath={citationPath}
         />
@@ -136,8 +143,8 @@ export default function App() {
 
       {/* Filter Panel (left sidebar) */}
       <FilterPanel
-        cpcSections={filters.cpcSections}
-        onToggleSection={handleToggleSection}
+        categories={filters.categories}
+        onToggleCategory={handleToggleCategory}
         minCitations={filters.minCitations}
         onMinCitationsChange={setMinCitations}
         totalCount={data.nodes.length}
@@ -166,8 +173,8 @@ export default function App() {
         node={selectedNode}
         allNodes={data.nodes}
         edges={data.edges}
-        nodeIndex={filters.selectedPatentIndex}
-        onClose={() => setSelectedPatentIndex(null)}
+        nodeIndex={filters.selectedIndex}
+        onClose={() => setSelectedIndex(null)}
         onNavigate={handleNavigate}
       />
 
@@ -175,7 +182,7 @@ export default function App() {
       <PathTracerPanel
         nodes={data.nodes}
         edges={data.edges}
-        selectedIndex={filters.selectedPatentIndex}
+        selectedIndex={filters.selectedIndex}
         onPathChange={setCitationPath}
         onNavigate={handleNavigate}
       />
@@ -194,10 +201,10 @@ export default function App() {
         <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">
           <div>
             <h1 className="text-base font-light tracking-wider" style={{ color: 'var(--text-primary)' }}>
-              Patent Galaxy
+              {config.name}
             </h1>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-              {filteredIndices.length.toLocaleString()} patents visible
+              {filteredIndices.length.toLocaleString()} {config.nodeLabelPlural} visible
             </p>
           </div>
           <div style={{ width: 1, height: 28, background: 'var(--border-color)' }} />
@@ -205,5 +212,23 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  const [activeProject, setActiveProject] = useState<ProjectConfig>(patentConfig);
+
+  return (
+    <ProjectProvider config={activeProject}>
+      <ProjectSelector
+        projects={PROJECTS}
+        activeId={activeProject.id}
+        onSelect={(id) => {
+          const project = PROJECTS.find(p => p.id === id);
+          if (project) setActiveProject(project);
+        }}
+      />
+      <AppInner config={activeProject} />
+    </ProjectProvider>
   );
 }

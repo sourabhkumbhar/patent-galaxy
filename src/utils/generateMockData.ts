@@ -1,4 +1,4 @@
-import type { PatentNode, CitationEdge, Cluster, PatentData } from '../types/patent';
+import type { DataNode, Edge, Cluster, DataSet } from '../types/patent';
 import { CPC_COLORS, CPC_SECTION_NAMES } from '../utils/colors';
 import { generatePatentPosition, getSectionCentroid } from '../utils/spatial';
 
@@ -388,19 +388,17 @@ function generatePatentId(index: number, rand: () => number): string {
 // Power-law citation count
 // ---------------------------------------------------------------------------
 function generateCitationCount(rand: () => number): number {
-  // Inverse transform sampling from a truncated Pareto-like distribution.
-  // Most patents get 0-5 citations; a few reach 100+.
   const u = rand();
   if (u < 0.35) return 0;
   if (u < 0.55) return 1;
   if (u < 0.68) return 2;
   if (u < 0.78) return 3;
-  if (u < 0.84) return Math.floor(4 + rand() * 3); // 4-6
-  if (u < 0.90) return Math.floor(7 + rand() * 5); // 7-11
-  if (u < 0.95) return Math.floor(12 + rand() * 18); // 12-29
-  if (u < 0.98) return Math.floor(30 + rand() * 40); // 30-69
-  if (u < 0.995) return Math.floor(70 + rand() * 60); // 70-129
-  return Math.floor(130 + rand() * 200); // 130-329
+  if (u < 0.84) return Math.floor(4 + rand() * 3);
+  if (u < 0.90) return Math.floor(7 + rand() * 5);
+  if (u < 0.95) return Math.floor(12 + rand() * 18);
+  if (u < 0.98) return Math.floor(30 + rand() * 40);
+  if (u < 0.995) return Math.floor(70 + rand() * 60);
+  return Math.floor(130 + rand() * 200);
 }
 
 // ---------------------------------------------------------------------------
@@ -410,7 +408,7 @@ const TOTAL_NODES = 50000;
 const TOTAL_EDGES = 150000;
 const SEED = 42;
 
-export function generateMockData(): PatentData {
+export function generateMockData(): DataSet {
   const rand = mulberry32(SEED);
 
   // Override Math.random so that generatePatentPosition uses our seeded PRNG
@@ -424,9 +422,9 @@ export function generateMockData(): PatentData {
   }
 }
 
-function generateDataInternal(rand: () => number): PatentData {
+function generateDataInternal(rand: () => number): DataSet {
   // ----- Nodes -----
-  const nodes: PatentNode[] = [];
+  const nodes: DataNode[] = [];
   const sectionIndices: Record<string, number[]> = {};
 
   for (let i = 0; i < TOTAL_NODES; i++) {
@@ -441,20 +439,20 @@ function generateDataInternal(rand: () => number): PatentData {
     const year = 2010 + Math.floor(rand() * 15); // 2010-2024
     const month = 1 + Math.floor(rand() * 12);
     const citationCount = generateCitationCount(rand);
-    const inventorCount = 1 + Math.floor(rand() * rand() * 12); // skewed toward 1-3
+    const contributorCount = 1 + Math.floor(rand() * rand() * 12); // skewed toward 1-3
 
     const pos = generatePatentPosition(section, cpcClass, year);
 
-    const node: PatentNode = {
+    const node: DataNode = {
       id: generatePatentId(i, rand),
       title: generateTitle(section, rand),
       year,
       month,
-      cpcSection: section,
-      cpcClass,
-      cpcSubclass,
-      assignee: pickAssignee(section, rand),
-      inventorCount,
+      category: section,
+      subcategory: cpcClass,
+      detail: cpcSubclass,
+      creator: pickAssignee(section, rand),
+      contributorCount,
       citationCount,
       x: pos.x,
       y: pos.y,
@@ -472,7 +470,7 @@ function generateDataInternal(rand: () => number): PatentData {
   }
 
   // ----- Edges -----
-  const edges: CitationEdge[] = [];
+  const edges: Edge[] = [];
   const edgeSet = new Set<string>();
   const allSections = Object.keys(sectionIndices);
 
@@ -482,7 +480,7 @@ function generateDataInternal(rand: () => number): PatentData {
 
     // Pick a random source node
     const sourceIdx = Math.floor(rand() * TOTAL_NODES);
-    const sourceSection = nodes[sourceIdx].cpcSection;
+    const sourceSection = nodes[sourceIdx].category;
 
     let targetIdx: number;
 

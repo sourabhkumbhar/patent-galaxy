@@ -1,19 +1,20 @@
-import type { PatentNode } from '../types/patent';
-import { formatPatentId, formatDate } from '../utils/formatters';
-import { CPC_SECTION_NAMES } from '../utils/colors';
+import type { DataNode } from '../types/patent';
+import { useProject } from '../config/ProjectContext';
+import { formatDate } from '../utils/formatters';
 
 interface HoverCardProps {
-  node: PatentNode | null;
+  node: DataNode | null;
   mousePosition: { x: number; y: number };
 }
 
-// Detect touch-primary device once (hover card makes no sense without a pointer)
 const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
 export default function HoverCard({ node, mousePosition }: HoverCardProps) {
+  const config = useProject();
+
   if (!node || isTouchDevice) return null;
 
-  const sectionName = CPC_SECTION_NAMES[node.cpcSection] ?? node.cpcSection;
+  const categoryName = config.categoryNames[node.category] ?? node.category;
 
   return (
     <div
@@ -46,14 +47,14 @@ export default function HoverCard({ node, mousePosition }: HoverCardProps) {
         />
 
         <div className="mb-1 text-xs font-mono" style={{ color: node.color }}>
-          {formatPatentId(node.id)}
+          {config.formatNodeId(node.id)}
         </div>
         <div className="mb-2 font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
           {node.title}
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
           <span>{formatDate(node.year, node.month)}</span>
-          <span>{node.assignee}</span>
+          <span>{node.creator}</span>
         </div>
         <div className="mt-2.5 flex items-center gap-3 text-xs">
           <span
@@ -64,10 +65,10 @@ export default function HoverCard({ node, mousePosition }: HoverCardProps) {
               border: `1px solid ${node.color}20`,
             }}
           >
-            {node.cpcSection} - {sectionName}
+            {node.category} - {categoryName}
           </span>
           <span style={{ color: 'var(--text-secondary)' }}>
-            {node.citationCount} citation{node.citationCount !== 1 ? 's' : ''}
+            {node.citationCount} {node.citationCount !== 1 ? 'citations' : 'citation'}
           </span>
         </div>
       </div>

@@ -1,11 +1,11 @@
 import { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import type { PatentNode } from '../types/patent';
+import type { DataNode } from '../types/patent';
 import { hexToRgb } from '../utils/colors';
 
 interface StarFieldProps {
-  nodes: PatentNode[];
+  nodes: DataNode[];
   filteredIndices: number[];
   hoveredIndex: number | null;
   selectedIndex: number | null;
@@ -113,6 +113,7 @@ export default function StarField({
     attribute vec3 customColor;
     varying vec3 vColor;
     varying float vSize;
+    varying float vDepth;
     uniform float uTime;
 
     void main() {
@@ -120,9 +121,11 @@ export default function StarField({
       vSize = size;
 
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      float twinkle = 1.0 + 0.1 * sin(uTime * 2.0 + position.x * 0.5 + position.y * 0.3);
-      gl_PointSize = size * twinkle * (200.0 / -mvPosition.z);
-      gl_PointSize = max(gl_PointSize, 1.0);
+      vDepth = clamp(-mvPosition.z / 1000.0, 0.0, 1.0);
+
+      float twinkle = 1.0 + 0.12 * sin(uTime * 1.5 + position.x * 0.5 + position.y * 0.3);
+      gl_PointSize = size * twinkle * (260.0 / -mvPosition.z);
+      gl_PointSize = max(gl_PointSize, 1.5);
       gl_Position = projectionMatrix * mvPosition;
     }
   `;
@@ -130,6 +133,7 @@ export default function StarField({
   const fragmentShader = `
     varying vec3 vColor;
     varying float vSize;
+    varying float vDepth;
 
     void main() {
       vec2 center = gl_PointCoord - vec2(0.5);
@@ -145,7 +149,13 @@ export default function StarField({
       float core = 1.0 - smoothstep(0.0, 0.15, dist);
       vec3 color = mix(vColor, vec3(1.0), core * 0.6);
 
-      gl_FragColor = vec4(color, alpha * 0.9);
+      // Depth-based color temperature: distant stars shift cooler (bluer)
+      color = mix(color, color * vec3(0.85, 0.9, 1.15), vDepth * 0.3);
+
+      // Depth-based alpha fade: distant stars become more transparent
+      float depthAlpha = mix(0.9, 0.4, vDepth);
+
+      gl_FragColor = vec4(color, alpha * depthAlpha);
     }
   `;
 

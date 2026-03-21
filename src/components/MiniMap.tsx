@@ -1,11 +1,11 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { PatentNode } from '../types/patent';
+import type { DataNode } from '../types/patent';
 import { hexToRgb } from '../utils/colors';
 
 interface MiniMapOverlayProps {
-  nodes: PatentNode[];
+  nodes: DataNode[];
   filteredIndices: number[];
 }
 
@@ -74,7 +74,7 @@ export default function MiniMapOverlay({ nodes, filteredIndices }: MiniMapOverla
 
     const w = canvas.width;
     const h = canvas.height;
-    const scale = 0.6;
+    const scale = 0.45;
     const cx = w / 2;
     const cy = h / 2;
 

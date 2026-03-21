@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { CPC_COLORS, CPC_SECTION_NAMES } from '../utils/colors';
+import { useProject } from '../config/ProjectContext';
 
 interface FilterPanelProps {
-  cpcSections: Set<string>;
-  onToggleSection: (section: string) => void;
+  categories: Set<string>;
+  onToggleCategory: (category: string) => void;
   minCitations: number;
   onMinCitationsChange: (min: number) => void;
   totalCount: number;
@@ -11,13 +11,14 @@ interface FilterPanelProps {
 }
 
 export default function FilterPanel({
-  cpcSections,
-  onToggleSection,
+  categories,
+  onToggleCategory,
   minCitations,
   onMinCitationsChange,
   totalCount,
   filteredCount,
 }: FilterPanelProps) {
+  const config = useProject();
   const [isCollapsed, setIsCollapsed] = useState(
     typeof window !== 'undefined' && window.innerWidth < 640
   );
@@ -74,7 +75,7 @@ export default function FilterPanel({
             {/* Stats bar */}
             <div>
               <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                <span>{filteredCount.toLocaleString()} patents</span>
+                <span>{filteredCount.toLocaleString()} {config.nodeLabelPlural}</span>
                 <span style={{ color: 'var(--text-muted)' }}>of {totalCount.toLocaleString()}</span>
               </div>
               <div className="h-1 rounded-full" style={{ background: 'rgba(100, 100, 180, 0.1)' }}>
@@ -90,21 +91,21 @@ export default function FilterPanel({
               </div>
             </div>
 
-            {/* CPC Section toggles */}
+            {/* Category toggles */}
             <div>
               <div className="text-xs mb-2 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                CPC Sections
+                {config.categoryLabel}
               </div>
               <div className="space-y-0.5">
-                {Object.entries(CPC_COLORS).map(([section, color]) => {
-                  const isActive = cpcSections.has(section);
+                {config.categories.map(({ id, label, color }) => {
+                  const isActive = categories.has(id);
                   return (
                     <button
-                      key={section}
-                      onClick={() => onToggleSection(section)}
+                      key={id}
+                      onClick={() => onToggleCategory(id)}
                       role="checkbox"
                       aria-checked={isActive}
-                      aria-label={`${CPC_SECTION_NAMES[section]} (${section})`}
+                      aria-label={`${label} (${id})`}
                       className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs"
                       style={{
                         color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -122,8 +123,8 @@ export default function FilterPanel({
                           transition: 'all 0.2s ease',
                         }}
                       />
-                      <span className="font-mono w-4" style={{ color: isActive ? color : 'inherit' }}>{section}</span>
-                      <span className="truncate">{CPC_SECTION_NAMES[section]}</span>
+                      <span className="font-mono w-8 text-left" style={{ color: isActive ? color : 'inherit' }}>{id}</span>
+                      <span className="truncate">{label}</span>
                     </button>
                   );
                 })}

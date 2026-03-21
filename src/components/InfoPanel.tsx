@@ -1,12 +1,12 @@
 import { useRef, useCallback } from 'react';
-import type { PatentNode, CitationEdge } from '../types/patent';
-import { formatPatentId, formatDate, getPatentUrl } from '../utils/formatters';
-import { CPC_SECTION_NAMES } from '../utils/colors';
+import type { DataNode, Edge } from '../types/patent';
+import { useProject } from '../config/ProjectContext';
+import { formatDate } from '../utils/formatters';
 
 interface InfoPanelProps {
-  node: PatentNode | null;
-  allNodes: PatentNode[];
-  edges: CitationEdge[];
+  node: DataNode | null;
+  allNodes: DataNode[];
+  edges: Edge[];
   nodeIndex: number | null;
   onClose: () => void;
   onNavigate: (index: number) => void;
@@ -20,6 +20,8 @@ export default function InfoPanel({
   onClose,
   onNavigate,
 }: InfoPanelProps) {
+  const config = useProject();
+
   // Swipe-down-to-close on mobile
   const touchStartY = useRef(0);
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -27,13 +29,13 @@ export default function InfoPanel({
   }, []);
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if (dy > 80) onClose(); // swiped down > 80px
+    if (dy > 80) onClose();
   }, [onClose]);
 
   if (!node || nodeIndex === null) return null;
 
-  const sectionName = CPC_SECTION_NAMES[node.cpcSection] ?? node.cpcSection;
-  const patentUrl = getPatentUrl(node.id);
+  const categoryName = config.categoryNames[node.category] ?? node.category;
+  const nodeUrl = config.getNodeUrl(node.id);
 
   const citesSources: number[] = [];
   const citedBy: number[] = [];
@@ -49,7 +51,7 @@ export default function InfoPanel({
   return (
     <div
       role="complementary"
-      aria-label="Patent details"
+      aria-label={`${config.nodeLabel} details`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       className="fixed z-40 overflow-y-auto anim-slide-right
@@ -86,11 +88,11 @@ export default function InfoPanel({
         }}
       >
         <span className="text-xs font-mono" style={{ color: node.color }}>
-          {formatPatentId(node.id)}
+          {config.formatNodeId(node.id)}
         </span>
         <button
           onClick={onClose}
-          aria-label="Close patent details panel"
+          aria-label={`Close ${config.nodeLabel} details panel`}
           className="rounded-md px-2.5 py-1 text-xs btn-interactive"
           style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
         >
@@ -109,9 +111,12 @@ export default function InfoPanel({
           className="grid grid-cols-2 gap-3 text-sm rounded-lg p-3"
           style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)' }}
         >
-          <MetaItem label="Grant Date" value={formatDate(node.year, node.month)} />
-          <MetaItem label="Assignee" value={node.assignee} />
-          <MetaItem label="Inventors" value={`${node.inventorCount} inventor${node.inventorCount !== 1 ? 's' : ''}`} />
+          <MetaItem label="Date" value={formatDate(node.year, node.month)} />
+          <MetaItem label={config.creatorLabel} value={node.creator} />
+          <MetaItem
+            label={config.contributorLabel}
+            value={`${node.contributorCount} ${config.contributorLabel.toLowerCase()}`}
+          />
           <div>
             <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Citations</div>
             <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -126,9 +131,11 @@ export default function InfoPanel({
           </div>
         </div>
 
-        {/* CPC Classification */}
+        {/* Classification */}
         <div>
-          <div className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Classification</div>
+          <div className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+            {config.categoryLabel}
+          </div>
           <div
             className="inline-flex rounded-full px-3 py-1 text-sm"
             style={{
@@ -138,16 +145,16 @@ export default function InfoPanel({
               boxShadow: `0 0 12px ${node.color}10`,
             }}
           >
-            {node.cpcSection} - {sectionName}
+            {node.category} - {categoryName}
           </div>
           <div className="mt-1.5 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-            {node.cpcClass} / {node.cpcSubclass}
+            {node.subcategory} / {node.detail}
           </div>
         </div>
 
         {/* External Link */}
         <a
-          href={patentUrl}
+          href={nodeUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm btn-interactive"
@@ -157,7 +164,7 @@ export default function InfoPanel({
             border: '1px solid rgba(68, 136, 255, 0.2)',
           }}
         >
-          View on Google Patents
+          {config.nodeUrlLabel}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
             <polyline points="15 3 21 3 21 9" />
@@ -176,6 +183,7 @@ export default function InfoPanel({
                 <CitationLink
                   key={idx}
                   node={allNodes[idx]}
+                  formatId={config.formatNodeId}
                   onClick={() => onNavigate(idx)}
                 />
               ))}
@@ -199,6 +207,7 @@ export default function InfoPanel({
                 <CitationLink
                   key={idx}
                   node={allNodes[idx]}
+                  formatId={config.formatNodeId}
                   onClick={() => onNavigate(idx)}
                 />
               ))}
@@ -224,7 +233,15 @@ function MetaItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function CitationLink({ node, onClick }: { node: PatentNode; onClick: () => void }) {
+function CitationLink({
+  node,
+  formatId,
+  onClick,
+}: {
+  node: DataNode;
+  formatId: (id: string) => string;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
@@ -236,7 +253,7 @@ function CitationLink({ node, onClick }: { node: PatentNode; onClick: () => void
           style={{ background: node.color, boxShadow: `0 0 4px ${node.color}66` }}
         />
         <span className="font-mono" style={{ color: node.color }}>
-          {formatPatentId(node.id)}
+          {formatId(node.id)}
         </span>
       </div>
       <div className="truncate mt-0.5" style={{ color: 'var(--text-primary)' }}>{node.title}</div>

@@ -1,19 +1,22 @@
 interface LoadingScreenProps {
   progress?: number; // 0-100
+  projectName?: string;
 }
 
 /**
- * Full-screen loading screen shown while patent data is being loaded.
+ * Full-screen loading screen shown while data is being loaded.
  * Features a pulsing galaxy animation and optional download progress bar.
  */
-export default function LoadingScreen({ progress }: LoadingScreenProps) {
+export default function LoadingScreen({ progress, projectName = 'Patent Galaxy' }: LoadingScreenProps) {
+  const noun = projectName.toLowerCase().includes('paper') ? 'papers' : 'patents';
+
   const statusText =
     progress === undefined || progress === 0
       ? 'Initializing...'
       : progress < 95
-        ? `Loading patent data... ${progress}%`
+        ? `Loading ${noun}... ${progress}%`
         : progress < 100
-          ? 'Processing patents...'
+          ? `Processing ${noun}...`
           : 'Preparing visualization...';
 
   return (
@@ -58,7 +61,7 @@ export default function LoadingScreen({ progress }: LoadingScreenProps) {
       </div>
 
       <h1 className="text-2xl font-light tracking-wide mb-2" style={{ color: '#e0e0f0' }}>
-        Patent Galaxy
+        {projectName}
       </h1>
       <p className="text-sm mb-6" style={{ color: '#8888aa' }}>
         {statusText}

@@ -1,8 +1,8 @@
 import { useEffect, useCallback, useRef } from 'react';
-import type { PatentNode } from '../types/patent';
+import type { DataNode } from '../types/patent';
 
 interface UseKeyboardNavigationParams {
-  nodes: PatentNode[];
+  nodes: DataNode[];
   filteredIndices: number[];
   selectedIndex: number | null;
   onSelect: (index: number | null) => void;

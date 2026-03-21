@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "fetch-data": "node --max-old-space-size=8192 --import tsx/esm scripts/fetch-patents.ts"
+    "fetch-data": "node --max-old-space-size=8192 --import tsx/esm scripts/fetch-patents.ts",
+    "fetch-papers": "node --max-old-space-size=8192 --import tsx/esm scripts/fetch-papers.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

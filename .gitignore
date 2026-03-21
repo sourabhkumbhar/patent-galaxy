@@ -23,11 +23,17 @@ dist-ssr
 *.sln
 *.sw?
 
-# Generated patent data (run npm run fetch-data to generate)
+# Generated data (run npm run fetch-data / fetch-papers to generate)
 public/data/patents.json
+public/data/papers.json
 
 # Data pipeline
 data-pipeline/raw/
 data-pipeline/processed/
+data-pipeline/cache/
 data-pipeline/__pycache__/
 *.pyc
+
+# Large data files
+arxiv.zip
+*.jsonl

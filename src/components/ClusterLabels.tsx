@@ -1,4 +1,5 @@
 import type { Cluster } from '../types/patent';
+import { useProject } from '../config/ProjectContext';
 import { Text } from '@react-three/drei';
 
 interface ClusterLabelsProps {
@@ -11,16 +12,16 @@ interface ClusterLabelsProps {
  * Labels always face the camera (billboard behavior via drei's Text).
  */
 export default function ClusterLabels({ clusters, visibleSections }: ClusterLabelsProps) {
+  const config = useProject();
   return (
     <group>
       {clusters.map((cluster) => {
-        const section = cluster.label.charAt(0);
-        if (!visibleSections.has(section)) return null;
+        if (!visibleSections.has(cluster.shortLabel)) return null;
 
         return (
-          <group key={cluster.label} position={[cluster.x, cluster.y + 30, cluster.z]}>
+          <group key={cluster.label} position={[cluster.x, cluster.y + 40, cluster.z]}>
             <Text
-              fontSize={5}
+              fontSize={6}
               color={cluster.color}
               anchorX="center"
               anchorY="middle"
@@ -31,8 +32,8 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
               {cluster.shortLabel}
             </Text>
             <Text
-              position={[0, -6, 0]}
-              fontSize={2.5}
+              position={[0, -7, 0]}
+              fontSize={3}
               color="#8888aa"
               anchorX="center"
               anchorY="middle"
@@ -40,7 +41,7 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
               outlineColor="#000000"
               font={undefined}
             >
-              {cluster.count.toLocaleString()} patents
+              {cluster.count.toLocaleString()} {config.nodeLabelPlural}
             </Text>
           </group>
         );

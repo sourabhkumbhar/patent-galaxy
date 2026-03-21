@@ -2,15 +2,15 @@ import { useEffect, useCallback, useRef } from 'react';
 
 interface UseShareStateParams {
   yearRange: [number, number];
-  cpcSections: Set<string>;
+  categories: Set<string>;
   minCitations: number;
   searchQuery: string;
-  selectedPatentIndex: number | null;
+  selectedIndex: number | null;
   setYearRange: (range: [number, number]) => void;
-  setCpcSections: (sections: Set<string>) => void;
+  setCategories: (categories: Set<string>) => void;
   setMinCitations: (min: number) => void;
   setSearchQuery: (query: string) => void;
-  setSelectedPatentIndex: (index: number | null) => void;
+  setSelectedIndex: (index: number | null) => void;
   isLoading: boolean;
 }
 
@@ -20,20 +20,19 @@ interface UseShareStateParams {
  */
 export function useShareState({
   yearRange,
-  cpcSections,
+  categories,
   minCitations,
   searchQuery,
-  selectedPatentIndex,
+  selectedIndex,
   setYearRange,
-  setCpcSections,
+  setCategories,
   setMinCitations,
   setSearchQuery,
-  setSelectedPatentIndex,
+  setSelectedIndex,
   isLoading,
 }: UseShareStateParams) {
   const hasRestoredRef = useRef(false);
 
-  // Restore state from URL hash on mount (once data is loaded)
   useEffect(() => {
     if (isLoading || hasRestoredRef.current) return;
     hasRestoredRef.current = true;
@@ -52,9 +51,9 @@ export function useShareState({
         }
       }
 
-      const cpc = params.get('cpc');
-      if (cpc) {
-        setCpcSections(new Set(cpc.split('')));
+      const cat = params.get('cat') || params.get('cpc');
+      if (cat) {
+        setCategories(new Set(cat.split(',')));
       }
 
       const mc = params.get('mc');
@@ -69,23 +68,22 @@ export function useShareState({
       const sel = params.get('sel');
       if (sel) {
         const val = parseInt(sel, 10);
-        if (!isNaN(val)) setSelectedPatentIndex(val);
+        if (!isNaN(val)) setSelectedIndex(val);
       }
     } catch {
       // Invalid hash, ignore
     }
-  }, [isLoading, setYearRange, setCpcSections, setMinCitations, setSearchQuery, setSelectedPatentIndex]);
+  }, [isLoading, setYearRange, setCategories, setMinCitations, setSearchQuery, setSelectedIndex]);
 
-  // Encode state to URL hash
   const encodeState = useCallback((): string => {
     const params = new URLSearchParams();
     params.set('yr', `${yearRange[0]}-${yearRange[1]}`);
-    params.set('cpc', Array.from(cpcSections).sort().join(''));
+    params.set('cat', Array.from(categories).sort().join(','));
     if (minCitations > 0) params.set('mc', String(minCitations));
     if (searchQuery) params.set('q', searchQuery);
-    if (selectedPatentIndex !== null) params.set('sel', String(selectedPatentIndex));
+    if (selectedIndex !== null) params.set('sel', String(selectedIndex));
     return params.toString();
-  }, [yearRange, cpcSections, minCitations, searchQuery, selectedPatentIndex]);
+  }, [yearRange, categories, minCitations, searchQuery, selectedIndex]);
 
   const getShareUrl = useCallback((): string => {
     const base = window.location.origin + window.location.pathname;
@@ -94,7 +92,6 @@ export function useShareState({
 
   const copyShareUrl = useCallback(async (): Promise<boolean> => {
     const url = getShareUrl();
-    // Update current URL hash silently
     window.history.replaceState(null, '', `#${encodeState()}`);
     try {
       await navigator.clipboard.writeText(url);

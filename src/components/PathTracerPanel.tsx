@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
-import type { PatentNode, CitationEdge } from '../types/patent';
-import { formatPatentId } from '../utils/formatters';
+import type { DataNode, Edge } from '../types/patent';
+import { useProject } from '../config/ProjectContext';
 import { findCitationPath } from '../utils/citationPath';
 
 interface PathTracerPanelProps {
-  nodes: PatentNode[];
-  edges: CitationEdge[];
+  nodes: DataNode[];
+  edges: Edge[];
   selectedIndex: number | null;
   onPathChange: (path: number[] | null) => void;
   onNavigate: (index: number) => void;
@@ -22,6 +22,7 @@ export default function PathTracerPanel({
   onPathChange,
   onNavigate,
 }: PathTracerPanelProps) {
+  const config = useProject();
   const [isOpen, setIsOpen] = useState(false);
   const [startIndex, setStartIndex] = useState<number | null>(null);
   const [endIndex, setEndIndex] = useState<number | null>(null);
@@ -31,12 +32,12 @@ export default function PathTracerPanel({
   const searchResults = useMemo(() => {
     if (searchQuery.length < 2) return [];
     const q = searchQuery.toLowerCase();
-    const matches: { index: number; node: PatentNode }[] = [];
+    const matches: { index: number; node: DataNode }[] = [];
     for (let i = 0; i < nodes.length && matches.length < 8; i++) {
       const n = nodes[i];
       if (
         n.title.toLowerCase().includes(q) ||
-        n.assignee.toLowerCase().includes(q) ||
+        n.creator.toLowerCase().includes(q) ||
         n.id.toLowerCase().includes(q)
       ) {
         matches.push({ index: i, node: n });
@@ -187,7 +188,7 @@ export default function PathTracerPanel({
                     style={{ color: '#c0c0d0' }}
                   >
                     <span className="font-mono" style={{ color: node.color }}>
-                      {formatPatentId(node.id)}
+                      {config.formatNodeId(node.id)}
                     </span>
                     <span className="ml-2 truncate">{node.title}</span>
                   </button>
@@ -239,7 +240,7 @@ export default function PathTracerPanel({
                         {i + 1}
                       </span>
                       <span className="font-mono" style={{ color: nodes[nodeIdx].color }}>
-                        {formatPatentId(nodes[nodeIdx].id)}
+                        {config.formatNodeId(nodes[nodeIdx].id)}
                       </span>
                       <span className="truncate">{nodes[nodeIdx].title}</span>
                     </button>
@@ -278,7 +279,7 @@ function PatentSlot({
   onNavigate,
 }: {
   label: string;
-  node: PatentNode | null;
+  node: DataNode | null;
   onClickSearch: () => void;
   onUseSelected: () => void;
   hasSelected: boolean;
@@ -299,7 +300,7 @@ function PatentSlot({
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: node.color }} />
           <div className="flex-1 min-w-0">
             <div className="text-xs font-mono" style={{ color: node.color }}>
-              {formatPatentId(node.id)}
+              {config.formatNodeId(node.id)}
             </div>
             <div className="text-xs truncate" style={{ color: '#c0c0d0' }}>
               {node.title}

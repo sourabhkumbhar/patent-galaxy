@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import type { PatentNode } from '../types/patent';
+import type { DataNode } from '../types/patent';
 
 interface CitationPathLinesProps {
-  nodes: PatentNode[];
+  nodes: DataNode[];
   path: number[] | null;
 }
 

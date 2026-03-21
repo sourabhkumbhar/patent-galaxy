@@ -55,18 +55,18 @@ CPC_SECTIONS.forEach((s, i) => { SECTION_ANGLES[s] = (i / CPC_SECTIONS.length) *
 
 function getSectionCentroid(section: string) {
   const angle = SECTION_ANGLES[section] ?? 0;
-  const r = 80;
-  const elev = ((CPC_SECTIONS.indexOf(section) % 3) - 1) * 20;
+  const r = 104;
+  const elev = ((CPC_SECTIONS.indexOf(section) % 3) - 1) * 26;
   return { x: Math.cos(angle) * r, y: elev, z: Math.sin(angle) * r };
 }
 
 function genPos(section: string, cpcClass: string, rand: () => number) {
   const c = getSectionCentroid(section);
   const cn = parseInt(cpcClass.replace(/\D/g, ''), 10) || 0;
-  const co = (cn % 20) * 1.5;
-  const sx = (rand() + rand() + rand() - 1.5) * 25;
-  const sy = (rand() + rand() + rand() - 1.5) * 25;
-  const sz = (rand() + rand() + rand() - 1.5) * 25;
+  const co = (cn % 20) * 2.0;
+  const sx = (rand() + rand() + rand() - 1.5) * 33;
+  const sy = (rand() + rand() + rand() - 1.5) * 33;
+  const sz = (rand() + rand() + rand() - 1.5) * 33;
   return {
     x: +(c.x + sx + co * Math.cos(cn)).toFixed(1),
     y: +(c.y + sy).toFixed(1),

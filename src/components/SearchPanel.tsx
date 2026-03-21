@@ -1,16 +1,17 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import type { PatentNode } from '../types/patent';
-import { formatPatentId } from '../utils/formatters';
+import type { DataNode } from '../types/patent';
+import { useProject } from '../config/ProjectContext';
 
 const MAX_RESULTS = 12;
 
 interface SearchPanelProps {
-  nodes: PatentNode[];
+  nodes: DataNode[];
   onSelect: (index: number) => void;
   onSearch: (query: string) => void;
 }
 
 export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelProps) {
+  const config = useProject();
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -24,13 +25,13 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
   const { results, totalMatches } = useMemo(() => {
     if (query.length < 2) return { results: [], totalMatches: 0 };
     const q = query.toLowerCase();
-    const matches: { index: number; node: PatentNode }[] = [];
+    const matches: { index: number; node: DataNode }[] = [];
     let total = 0;
     for (let i = 0; i < nodes.length; i++) {
       const n = nodes[i];
       if (
         n.title.toLowerCase().includes(q) ||
-        n.assignee.toLowerCase().includes(q) ||
+        n.creator.toLowerCase().includes(q) ||
         n.id.toLowerCase().includes(q)
       ) {
         total++;
@@ -84,8 +85,8 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
             onChange={handleChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-            placeholder="Search patents, companies..."
-            aria-label="Search patents"
+            placeholder={config.searchPlaceholder}
+            aria-label={`Search ${config.nodeLabelPlural}`}
             aria-autocomplete="list"
             aria-expanded={isFocused && results.length > 0}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--text-muted)]"
@@ -121,14 +122,14 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
                     style={{ background: node.color, boxShadow: `0 0 6px ${node.color}66` }}
                   />
                   <span className="text-xs font-mono truncate" style={{ color: node.color }}>
-                    {formatPatentId(node.id)}
+                    {config.formatNodeId(node.id)}
                   </span>
                 </div>
                 <div className="text-sm truncate mt-0.5" style={{ color: 'var(--text-primary)' }}>
                   {node.title}
                 </div>
                 <div className="text-xs truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                  {node.assignee}
+                  {node.creator}
                 </div>
               </button>
             ))}
@@ -155,7 +156,7 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
               borderTop: '1px solid var(--border-color)',
             }}
           >
-            No patents found matching "{query}"
+            No {config.nodeLabelPlural} found matching "{query}"
           </div>
         )}
       </div>

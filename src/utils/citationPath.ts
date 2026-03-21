@@ -1,9 +1,9 @@
-import type { CitationEdge } from '../types/patent';
+import type { Edge } from '../types/patent';
 
 /**
  * Build an adjacency list from citation edges (undirected for path finding).
  */
-function buildAdjacency(edges: CitationEdge[]): Map<number, number[]> {
+function buildAdjacency(edges: Edge[]): Map<number, number[]> {
   const adj = new Map<number, number[]>();
   for (const edge of edges) {
     if (!adj.has(edge.source)) adj.set(edge.source, []);
@@ -20,7 +20,7 @@ function buildAdjacency(edges: CitationEdge[]): Map<number, number[]> {
  * Limits search depth to prevent runaway traversal.
  */
 export function findCitationPath(
-  edges: CitationEdge[],
+  edges: Edge[],
   startIndex: number,
   endIndex: number,
   maxDepth = 10

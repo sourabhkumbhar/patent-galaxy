@@ -11,10 +11,12 @@ import MiniMapOverlay from './MiniMap';
 import RaycastHandler from './RaycastHandler';
 import CameraController from './CameraController';
 import CitationPathLines from './CitationPathLines';
-import type { PatentData, FilterState } from '../types/patent';
+import AmbientDust from './AmbientDust';
+import type { DataSet, FilterState } from '../types/patent';
+import { useProject } from '../config/ProjectContext';
 
 interface GalaxyProps {
-  data: PatentData;
+  data: DataSet;
   filters: FilterState;
   filteredIndices: number[];
   onHover: (index: number | null) => void;
@@ -36,6 +38,7 @@ export default function Galaxy({
   onMouseMove,
   citationPath,
 }: GalaxyProps) {
+  const config = useProject();
   const pointsRef = useRef<THREE.Points>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -49,13 +52,13 @@ export default function Galaxy({
   return (
     <div className="w-full h-full" onPointerMove={handlePointerMove}>
       <Canvas
-        camera={{ position: [0, 80, 200], fov: 60, near: 0.1, far: 2000 }}
+        camera={{ position: [0, 100, 260], fov: 60, near: 0.1, far: 3000 }}
         gl={{
           antialias: false,
           powerPreference: 'high-performance',
           alpha: false,
         }}
-        style={{ background: '#0a0a12', touchAction: 'none' }}
+        style={{ background: config.background, touchAction: 'none' }}
         dpr={[1, filteredIndices.length > 100_000 ? 1 : 1.5]}
       >
         {/* Ambient light for general visibility */}
@@ -65,8 +68,8 @@ export default function Galaxy({
         <StarField
           nodes={data.nodes}
           filteredIndices={filteredIndices}
-          hoveredIndex={filters.hoveredPatentIndex}
-          selectedIndex={filters.selectedPatentIndex}
+          hoveredIndex={filters.hoveredIndex}
+          selectedIndex={filters.selectedIndex}
           pointsRef={pointsRef}
         />
 
@@ -74,14 +77,14 @@ export default function Galaxy({
         <ConnectionLines
           nodes={data.nodes}
           edges={data.edges}
-          selectedIndex={filters.selectedPatentIndex}
-          hoveredIndex={filters.hoveredPatentIndex}
+          selectedIndex={filters.selectedIndex}
+          hoveredIndex={filters.hoveredIndex}
         />
 
         {/* Cluster labels */}
         <ClusterLabels
           clusters={data.clusters}
-          visibleSections={filters.cpcSections}
+          visibleSections={filters.categories}
         />
 
         {/* Raycasting for hover/click detection */}
@@ -93,13 +96,16 @@ export default function Galaxy({
           onClick={onClick}
         />
 
+        {/* Ambient dust for atmospheric depth */}
+        <AmbientDust />
+
         {/* Citation path visualization */}
         <CitationPathLines nodes={data.nodes} path={citationPath ?? null} />
 
         {/* Camera fly-to animation */}
         <CameraController
           nodes={data.nodes}
-          selectedIndex={filters.selectedPatentIndex}
+          selectedIndex={filters.selectedIndex}
           controlsRef={controlsRef}
         />
 
@@ -110,15 +116,15 @@ export default function Galaxy({
         />
 
         {/* Background nebula fog */}
-        <fog attach="fog" args={['#0a0a12', 300, 800]} />
+        <fog attach="fog" args={[config.fogColor, config.fogNear, config.fogFar]} />
 
         {/* Camera controls */}
         <OrbitControls
           ref={controlsRef}
           enableDamping
           dampingFactor={0.05}
-          minDistance={10}
-          maxDistance={600}
+          minDistance={15}
+          maxDistance={800}
           rotateSpeed={0.5}
           zoomSpeed={0.8}
           panSpeed={0.5}
@@ -128,18 +134,19 @@ export default function Galaxy({
         {filteredIndices.length <= 100_000 ? (
           <EffectComposer>
             <Bloom
-              intensity={0.8}
-              luminanceThreshold={0.1}
-              luminanceSmoothing={0.9}
+              intensity={1.0}
+              luminanceThreshold={0.15}
+              luminanceSmoothing={0.85}
               mipmapBlur
             />
           </EffectComposer>
         ) : (
           <EffectComposer>
             <Bloom
-              intensity={0.5}
-              luminanceThreshold={0.3}
-              luminanceSmoothing={0.9}
+              intensity={0.6}
+              luminanceThreshold={0.25}
+              luminanceSmoothing={0.85}
+              mipmapBlur
             />
           </EffectComposer>
         )}
