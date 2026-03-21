@@ -145,6 +145,19 @@ export default function App() {
       {/* Hover Card (follows cursor) */}
       <HoverCard node={hoveredNode} mousePosition={mousePos} />
 
+      {/* Empty state hint */}
+      {!selectedNode && !hoveredNode && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none">
+          <p className="text-xs px-4 py-2 rounded-full" style={{
+            color: 'var(--text-muted)',
+            background: 'rgba(10, 10, 20, 0.6)',
+            border: '1px solid var(--border-color)',
+          }}>
+            Click a star to explore &middot; Tab to cycle &middot; Arrow keys to navigate
+          </p>
+        </div>
+      )}
+
       {/* Info Panel (right sidebar, on click) */}
       <InfoPanel
         node={selectedNode}
@@ -174,14 +187,19 @@ export default function App() {
       />
 
       {/* Legend / Title */}
-      <div className="fixed top-4 right-4 z-20 text-right">
-        <h1 className="text-lg font-light tracking-wider" style={{ color: '#e0e0f0' }}>
-          Patent Galaxy
-        </h1>
-        <p className="text-xs mb-2" style={{ color: '#8888aa' }}>
-          {filteredIndices.length.toLocaleString()} patents visible
-        </p>
-        <ShareButton onCopy={copyShareUrl} />
+      <div className="fixed top-4 right-4 z-20 anim-fade-in">
+        <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">
+          <div>
+            <h1 className="text-base font-light tracking-wider" style={{ color: 'var(--text-primary)' }}>
+              Patent Galaxy
+            </h1>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+              {filteredIndices.length.toLocaleString()} patents visible
+            </p>
+          </div>
+          <div style={{ width: 1, height: 28, background: 'var(--border-color)' }} />
+          <ShareButton onCopy={copyShareUrl} />
+        </div>
       </div>
     </div>
   );

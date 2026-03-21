@@ -10,9 +10,6 @@ interface FilterPanelProps {
   filteredCount: number;
 }
 
-/**
- * Collapsible left sidebar with CPC section toggles and citation filters.
- */
 export default function FilterPanel({
   cpcSections,
   onToggleSection,
@@ -22,29 +19,37 @@ export default function FilterPanel({
   filteredCount,
 }: FilterPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const filterPct = totalCount > 0 ? Math.round((filteredCount / totalCount) * 100) : 100;
 
   return (
     <div
-      className="fixed left-4 top-24 z-30 transition-all"
-      style={{ width: isCollapsed ? 'auto' : 240 }}
+      className="fixed left-4 top-24 z-30 anim-slide-left"
+      style={{ width: isCollapsed ? 'auto' : 240, animationDelay: '0.05s' }}
     >
-      <div
-        className="rounded-lg overflow-hidden"
-        style={{
-          background: 'rgba(15, 15, 30, 0.9)',
-          border: '1px solid rgba(100, 100, 180, 0.2)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
+      <div className="glass-panel glass-panel-inner-glow overflow-hidden hover-glow">
         {/* Header */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           aria-expanded={!isCollapsed}
           aria-controls="filter-panel-content"
-          className="w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-white/5"
-          style={{ color: '#e0e0f0' }}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm btn-interactive"
+          style={{ color: 'var(--text-primary)' }}
         >
-          <span className="font-medium">Filters</span>
+          <span className="font-medium flex items-center gap-2">
+            Filters
+            {filteredCount < totalCount && (
+              <span
+                className="text-xs px-1.5 py-0.5 rounded-full"
+                style={{
+                  background: 'var(--accent-glow)',
+                  color: 'var(--accent)',
+                  fontSize: 10,
+                }}
+              >
+                {filterPct}%
+              </span>
+            )}
+          </span>
           <svg
             width="14"
             height="14"
@@ -54,8 +59,8 @@ export default function FilterPanel({
             strokeWidth="2"
             style={{
               transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s',
-              color: '#8888aa',
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              color: 'var(--text-secondary)',
             }}
           >
             <polyline points="6 9 12 15 18 9" />
@@ -63,18 +68,32 @@ export default function FilterPanel({
         </button>
 
         {!isCollapsed && (
-          <div id="filter-panel-content" className="px-4 pb-4 space-y-4">
-            {/* Stats */}
-            <div className="text-xs" style={{ color: '#8888aa' }}>
-              Showing {filteredCount.toLocaleString()} of {totalCount.toLocaleString()} patents
+          <div id="filter-panel-content" className="px-4 pb-4 space-y-4 anim-expand-down">
+            {/* Stats bar */}
+            <div>
+              <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                <span>{filteredCount.toLocaleString()} patents</span>
+                <span style={{ color: 'var(--text-muted)' }}>of {totalCount.toLocaleString()}</span>
+              </div>
+              <div className="h-1 rounded-full" style={{ background: 'rgba(100, 100, 180, 0.1)' }}>
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${filterPct}%`,
+                    background: 'linear-gradient(90deg, var(--accent), rgba(34, 211, 238, 0.6))',
+                    transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: '0 0 8px rgba(68, 136, 255, 0.3)',
+                  }}
+                />
+              </div>
             </div>
 
             {/* CPC Section toggles */}
             <div>
-              <div className="text-xs mb-2 font-medium" style={{ color: '#8888aa' }}>
+              <div className="text-xs mb-2 font-medium" style={{ color: 'var(--text-secondary)' }}>
                 CPC Sections
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {Object.entries(CPC_COLORS).map(([section, color]) => {
                   const isActive = cpcSections.has(section);
                   return (
@@ -84,22 +103,25 @@ export default function FilterPanel({
                       role="checkbox"
                       aria-checked={isActive}
                       aria-label={`${CPC_SECTION_NAMES[section]} (${section})`}
-                      className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors hover:bg-white/5"
+                      className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs"
                       style={{
-                        color: isActive ? '#c0c0d0' : '#555566',
+                        color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                        background: isActive ? `${color}08` : 'transparent',
+                        borderLeft: `2px solid ${isActive ? color : 'transparent'}`,
+                        transition: 'all 0.2s ease',
                       }}
                     >
                       <span
-                        className="w-3 h-3 rounded-sm shrink-0 transition-opacity"
+                        className="w-3 h-3 rounded shrink-0"
                         style={{
                           background: color,
-                          opacity: isActive ? 1 : 0.2,
+                          opacity: isActive ? 1 : 0.15,
+                          boxShadow: isActive ? `0 0 8px ${color}44` : 'none',
+                          transition: 'all 0.2s ease',
                         }}
                       />
-                      <span className="font-mono w-4">{section}</span>
-                      <span className="truncate">
-                        {CPC_SECTION_NAMES[section]}
-                      </span>
+                      <span className="font-mono w-4" style={{ color: isActive ? color : 'inherit' }}>{section}</span>
+                      <span className="truncate">{CPC_SECTION_NAMES[section]}</span>
                     </button>
                   );
                 })}
@@ -108,8 +130,18 @@ export default function FilterPanel({
 
             {/* Citation filter */}
             <div>
-              <div className="text-xs mb-2 font-medium" style={{ color: '#8888aa' }}>
-                Min Citations: {minCitations}
+              <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                <span className="font-medium">Min Citations</span>
+                <span
+                  className="px-1.5 py-0.5 rounded font-mono"
+                  style={{
+                    background: minCitations > 0 ? 'var(--accent-glow)' : 'transparent',
+                    color: minCitations > 0 ? 'var(--accent)' : 'var(--text-muted)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {minCitations}
+                </span>
               </div>
               <input
                 type="range"
@@ -120,10 +152,10 @@ export default function FilterPanel({
                 onChange={(e) => onMinCitationsChange(parseInt(e.target.value, 10))}
                 className="w-full h-1 rounded-full appearance-none cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, rgba(68, 136, 255, 0.6) ${(minCitations / 50) * 100}%, rgba(100, 100, 180, 0.2) ${(minCitations / 50) * 100}%)`,
+                  background: `linear-gradient(to right, var(--accent) ${(minCitations / 50) * 100}%, rgba(100, 100, 180, 0.12) ${(minCitations / 50) * 100}%)`,
                 }}
               />
-              <div className="flex justify-between text-xs mt-1" style={{ color: '#666677' }}>
+              <div className="flex justify-between text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                 <span>0</span>
                 <span>50+</span>
               </div>

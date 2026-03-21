@@ -99,13 +99,8 @@ export default function PathTracerPanel({
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Open citation path tracer"
-        className="fixed bottom-16 left-4 z-30 rounded-lg px-3 py-2 text-xs transition-colors hover:bg-white/10"
-        style={{
-          background: 'rgba(15, 15, 30, 0.9)',
-          border: '1px solid rgba(100, 100, 180, 0.2)',
-          color: '#8888aa',
-          backdropFilter: 'blur(12px)',
-        }}
+        className="fixed bottom-16 left-4 z-30 glass-panel px-3 py-2 text-xs btn-interactive"
+        style={{ color: 'var(--text-secondary)' }}
       >
         <span className="flex items-center gap-2">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -121,29 +116,24 @@ export default function PathTracerPanel({
 
   return (
     <div
-      className="fixed bottom-16 left-4 z-30 w-80 rounded-lg overflow-hidden"
-      style={{
-        background: 'rgba(15, 15, 30, 0.95)',
-        border: '1px solid rgba(100, 100, 180, 0.2)',
-        backdropFilter: 'blur(12px)',
-      }}
+      className="fixed bottom-16 left-4 z-30 w-80 glass-panel glass-panel-inner-glow overflow-hidden anim-slide-up"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <span className="text-sm font-medium" style={{ color: '#e0e0f0' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Citation Path Tracer
         </span>
         <button
           onClick={handleClose}
           aria-label="Close path tracer"
-          className="text-xs px-1.5 py-0.5 rounded transition-colors hover:bg-white/10"
-          style={{ color: '#8888aa' }}
+          className="text-xs px-2 py-0.5 rounded-md btn-interactive"
+          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
         >
           Close
         </button>
       </div>
 
-      <div className="px-4 pb-4 space-y-3" style={{ borderTop: '1px solid rgba(100, 100, 180, 0.15)' }}>
+      <div className="px-4 pb-4 space-y-3" style={{ borderTop: '1px solid var(--border-color)' }}>
         {/* Start patent */}
         <PatentSlot
           label="From"

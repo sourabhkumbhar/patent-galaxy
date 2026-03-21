@@ -10,16 +10,11 @@ interface SearchPanelProps {
   onSearch: (query: string) => void;
 }
 
-/**
- * Search panel in the top-left that allows searching patents by keyword,
- * inventor, or company name. Shows matching results with click-to-navigate.
- */
 export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -66,25 +61,19 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
   );
 
   return (
-    <div className="fixed top-4 left-4 z-40 w-80">
-      <div
-        className="rounded-lg overflow-hidden"
-        style={{
-          background: 'rgba(15, 15, 30, 0.9)',
-          border: '1px solid rgba(100, 100, 180, 0.2)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
+    <div className="fixed top-4 left-4 z-40 w-80 anim-slide-left">
+      <div className="glass-panel glass-panel-inner-glow overflow-hidden hover-glow">
         {/* Search input */}
-        <div className="flex items-center gap-2 px-4 py-3">
+        <div className="flex items-center gap-2.5 px-4 py-3">
           <svg
-            width="16"
-            height="16"
+            width="15"
+            height="15"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            style={{ color: '#8888aa', flexShrink: 0 }}
+            className="shrink-0"
+            style={{ color: isFocused ? 'var(--accent)' : 'var(--text-secondary)', transition: 'color 0.2s' }}
           >
             <circle cx="11" cy="11" r="8" />
             <path d="M21 21l-4.35-4.35" />
@@ -99,14 +88,14 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
             aria-label="Search patents"
             aria-autocomplete="list"
             aria-expanded={isFocused && results.length > 0}
-            className="flex-1 bg-transparent text-sm outline-none"
-            style={{ color: '#e0e0f0' }}
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--text-muted)]"
+            style={{ color: 'var(--text-primary)' }}
           />
           {query && (
             <button
               onClick={() => { setQuery(''); onSearch(''); }}
-              className="text-xs px-1.5 py-0.5 rounded transition-colors hover:bg-white/10"
-              style={{ color: '#8888aa' }}
+              className="text-xs px-2 py-0.5 rounded-md btn-interactive"
+              style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
             >
               Clear
             </button>
@@ -116,28 +105,29 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
         {/* Results dropdown */}
         {isFocused && results.length > 0 && (
           <div
-            className="max-h-72 overflow-y-auto"
-            style={{ borderTop: '1px solid rgba(100, 100, 180, 0.15)' }}
+            className="max-h-72 overflow-y-auto anim-expand-down"
+            style={{ borderTop: '1px solid var(--border-color)' }}
           >
-            {results.map(({ index, node }) => (
+            {results.map(({ index, node }, i) => (
               <button
                 key={index}
                 onMouseDown={() => handleSelect(index)}
-                className="w-full text-left px-4 py-2.5 transition-colors hover:bg-white/5"
+                className="w-full text-left px-4 py-2.5 list-item-hover"
+                style={{ animationDelay: `${i * 20}ms` }}
               >
                 <div className="flex items-center gap-2">
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: node.color }}
+                    style={{ background: node.color, boxShadow: `0 0 6px ${node.color}66` }}
                   />
                   <span className="text-xs font-mono truncate" style={{ color: node.color }}>
                     {formatPatentId(node.id)}
                   </span>
                 </div>
-                <div className="text-sm truncate mt-0.5" style={{ color: '#c0c0d0' }}>
+                <div className="text-sm truncate mt-0.5" style={{ color: 'var(--text-primary)' }}>
                   {node.title}
                 </div>
-                <div className="text-xs truncate mt-0.5" style={{ color: '#8888aa' }}>
+                <div className="text-xs truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                   {node.assignee}
                 </div>
               </button>
@@ -149,8 +139,8 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
           <div
             className="px-4 py-2 text-xs"
             style={{
-              color: '#8888aa',
-              borderTop: '1px solid rgba(100, 100, 180, 0.1)',
+              color: 'var(--text-secondary)',
+              borderTop: '1px solid var(--border-color)',
             }}
           >
             Showing {MAX_RESULTS} of {totalMatches.toLocaleString()} matches
@@ -159,10 +149,10 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
 
         {isFocused && query.length >= 2 && results.length === 0 && (
           <div
-            className="px-4 py-3 text-xs"
+            className="px-4 py-3 text-xs anim-fade-in"
             style={{
-              color: '#8888aa',
-              borderTop: '1px solid rgba(100, 100, 180, 0.15)',
+              color: 'var(--text-secondary)',
+              borderTop: '1px solid var(--border-color)',
             }}
           >
             No patents found matching "{query}"

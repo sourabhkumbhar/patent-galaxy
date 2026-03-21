@@ -4,10 +4,6 @@ interface ShareButtonProps {
   onCopy: () => Promise<boolean>;
 }
 
-/**
- * Small share button in the top-right that copies the current
- * view state as a shareable URL to the clipboard.
- */
 export default function ShareButton({ onCopy }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -23,16 +19,17 @@ export default function ShareButton({ onCopy }: ShareButtonProps) {
     <button
       onClick={handleClick}
       aria-label="Copy shareable link to clipboard"
-      className="rounded-md px-3 py-1.5 text-xs transition-all flex items-center gap-1.5"
+      className="rounded-lg px-3 py-1.5 text-xs flex items-center gap-1.5 btn-interactive"
       style={{
-        background: copied ? 'rgba(68, 200, 120, 0.15)' : 'rgba(68, 136, 255, 0.1)',
-        color: copied ? '#44c878' : '#8888aa',
-        border: `1px solid ${copied ? 'rgba(68, 200, 120, 0.3)' : 'rgba(100, 100, 180, 0.2)'}`,
+        background: copied ? 'rgba(68, 200, 120, 0.1)' : 'var(--accent-glow)',
+        color: copied ? '#44c878' : 'var(--text-secondary)',
+        border: `1px solid ${copied ? 'rgba(68, 200, 120, 0.25)' : 'var(--border-color)'}`,
+        transition: 'all 0.3s ease',
       }}
     >
       {copied ? (
         <>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
           Copied!
