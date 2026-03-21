@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react';
 import type { PatentNode, CitationEdge } from '../types/patent';
 import { formatPatentId, formatDate, getPatentUrl } from '../utils/formatters';
 import { CPC_SECTION_NAMES } from '../utils/colors';
@@ -19,6 +20,16 @@ export default function InfoPanel({
   onClose,
   onNavigate,
 }: InfoPanelProps) {
+  // Swipe-down-to-close on mobile
+  const touchStartY = useRef(0);
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (dy > 80) onClose(); // swiped down > 80px
+  }, [onClose]);
+
   if (!node || nodeIndex === null) return null;
 
   const sectionName = CPC_SECTION_NAMES[node.cpcSection] ?? node.cpcSection;
@@ -39,7 +50,11 @@ export default function InfoPanel({
     <div
       role="complementary"
       aria-label="Patent details"
-      className="fixed right-0 top-0 h-full w-96 z-40 overflow-y-auto anim-slide-right"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="fixed z-40 overflow-y-auto anim-slide-right
+        right-0 top-0 h-full w-96
+        max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:h-[70vh] max-sm:w-full max-sm:rounded-t-2xl"
       style={{
         background: 'var(--bg-panel)',
         borderLeft: '1px solid var(--border-color)',
@@ -47,9 +62,14 @@ export default function InfoPanel({
         boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4)',
       }}
     >
+      {/* Mobile drag handle hint */}
+      <div className="sm:hidden flex justify-center pt-2 pb-1">
+        <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(100, 100, 180, 0.3)' }} />
+      </div>
+
       {/* Color accent bar */}
       <div
-        className="h-1"
+        className="h-1 max-sm:hidden"
         style={{
           background: `linear-gradient(90deg, ${node.color}, ${node.color}44)`,
           boxShadow: `0 2px 12px ${node.color}33`,

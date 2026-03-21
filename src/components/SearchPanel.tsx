@@ -61,7 +61,7 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
   );
 
   return (
-    <div className="fixed top-4 left-4 z-40 w-80 anim-slide-left">
+    <div className="fixed top-4 left-4 right-4 sm:right-auto z-40 sm:w-80 anim-slide-left">
       <div className="glass-panel glass-panel-inner-glow overflow-hidden hover-glow">
         {/* Search input */}
         <div className="flex items-center gap-2.5 px-4 py-3">

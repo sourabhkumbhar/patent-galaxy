@@ -116,7 +116,7 @@ export default function PathTracerPanel({
 
   return (
     <div
-      className="fixed bottom-16 left-4 z-30 w-80 glass-panel glass-panel-inner-glow overflow-hidden anim-slide-up"
+      className="fixed bottom-16 left-4 right-4 sm:right-auto z-30 sm:w-80 glass-panel glass-panel-inner-glow overflow-hidden anim-slide-up"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">

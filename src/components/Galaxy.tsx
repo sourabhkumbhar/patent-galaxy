@@ -55,7 +55,7 @@ export default function Galaxy({
           powerPreference: 'high-performance',
           alpha: false,
         }}
-        style={{ background: '#0a0a12' }}
+        style={{ background: '#0a0a12', touchAction: 'none' }}
         dpr={[1, 1.5]}
       >
         {/* Ambient light for general visibility */}

@@ -186,3 +186,31 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: linear-gradient(90deg, var(--accent), rgba(68, 136, 255, 0.2));
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 640px) {
+  /* Prevent overscroll/bounce on iOS */
+  html, body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Enlarge range slider thumbs for touch */
+  input[type="range"]::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Disable hover effects on touch (they stick on mobile) */
+  .hover-lift:hover,
+  .hover-glow:hover,
+  .hover-scale:hover {
+    transform: none;
+    box-shadow: var(--shadow-panel);
+  }
+
+  .list-item-hover:active {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--accent);
+  }
+}

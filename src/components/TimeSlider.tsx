@@ -120,12 +120,13 @@ export default function TimeSlider({
     [minYear, totalYears]
   );
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent, handle: 'start' | 'end') => {
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent, handle: 'start' | 'end') => {
       e.preventDefault();
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
       setDragging(handle);
 
-      const handleMouseMove = (ev: MouseEvent) => {
+      const handlePointerMove = (ev: PointerEvent) => {
         const year = getYearFromMouseEvent(ev.clientX);
         if (handle === 'start') {
           onChange([Math.min(year, yearRange[1]), yearRange[1]]);
@@ -134,14 +135,14 @@ export default function TimeSlider({
         }
       };
 
-      const handleMouseUp = () => {
+      const handlePointerUp = () => {
         setDragging(null);
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('pointerup', handlePointerUp);
       };
 
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
     },
     [yearRange, onChange, getYearFromMouseEvent]
   );
@@ -278,15 +279,16 @@ export default function TimeSlider({
               aria-valuemax={maxYear}
               aria-valuenow={yearRange[0]}
               tabIndex={0}
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full cursor-grab"
+              className="absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full cursor-grab"
               style={{
                 left: `${startPct}%`,
-                marginLeft: -8,
+                marginLeft: -12,
                 background: dragging === 'start' ? '#4488ff' : 'rgba(68, 136, 255, 0.8)',
                 border: '2px solid #4488ff',
                 boxShadow: '0 0 8px rgba(68, 136, 255, 0.5)',
+                touchAction: 'none',
               }}
-              onMouseDown={(e) => handleMouseDown(e, 'start')}
+              onPointerDown={(e) => handlePointerDown(e, 'start')}
             />
 
             {/* End handle */}
@@ -297,15 +299,16 @@ export default function TimeSlider({
               aria-valuemax={maxYear}
               aria-valuenow={yearRange[1]}
               tabIndex={0}
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full cursor-grab"
+              className="absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full cursor-grab"
               style={{
                 left: `${endPct}%`,
-                marginLeft: -8,
+                marginLeft: -12,
                 background: dragging === 'end' ? '#4488ff' : 'rgba(68, 136, 255, 0.8)',
                 border: '2px solid #4488ff',
                 boxShadow: '0 0 8px rgba(68, 136, 255, 0.5)',
+                touchAction: 'none',
               }}
-              onMouseDown={(e) => handleMouseDown(e, 'end')}
+              onPointerDown={(e) => handlePointerDown(e, 'end')}
             />
           </div>
 

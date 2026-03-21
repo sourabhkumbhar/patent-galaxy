@@ -3,6 +3,9 @@ import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { PatentNode } from '../types/patent';
 
+const TAP_MAX_DURATION = 250; // ms — longer than this is a drag/scroll
+const TAP_MAX_DISTANCE = 8;   // px — moved more than this is a drag/scroll
+
 interface RaycastHandlerProps {
   pointsRef: React.RefObject<THREE.Points | null>;
   nodes: PatentNode[];
@@ -14,6 +17,7 @@ interface RaycastHandlerProps {
 /**
  * Handles raycasting against the points geometry for efficient
  * hover detection and click handling on the patent star field.
+ * Distinguishes taps from scroll/pan gestures on touch devices.
  */
 export default function RaycastHandler({
   pointsRef,
@@ -28,10 +32,13 @@ export default function RaycastHandler({
   const frameCount = useRef(0);
   const currentHoveredRef = useRef<number | null>(null);
 
+  // Tap detection: track pointer down position & time
+  const pointerDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
+
   // Set raycaster threshold for point detection
   raycaster.current.params.Points = { threshold: 2.0 };
 
-  // Track mouse position
+  // Track pointer position and detect taps vs drags
   useEffect(() => {
     const canvas = gl.domElement;
 
@@ -41,20 +48,54 @@ export default function RaycastHandler({
       mouse.current.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     };
 
-    const handleClick = () => {
-      if (currentHoveredRef.current !== null) {
-        onClick(currentHoveredRef.current);
+    const handlePointerDown = (e: PointerEvent) => {
+      pointerDownRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      const down = pointerDownRef.current;
+      pointerDownRef.current = null;
+      if (!down) return;
+
+      // Only count as a tap if short duration and minimal movement
+      const dt = Date.now() - down.time;
+      const dx = e.clientX - down.x;
+      const dy = e.clientY - down.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dt < TAP_MAX_DURATION && dist < TAP_MAX_DISTANCE) {
+        // Update raycaster mouse position from the tap location
+        const rect = canvas.getBoundingClientRect();
+        mouse.current.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.current.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Perform immediate raycast at tap position
+        if (pointsRef.current && nodes.length) {
+          raycaster.current.setFromCamera(mouse.current, camera);
+          const intersects = raycaster.current.intersectObject(pointsRef.current);
+          if (intersects.length > 0) {
+            const filteredIdx = intersects[0].index;
+            if (filteredIdx !== undefined && filteredIdx < filteredIndices.length) {
+              onClick(filteredIndices[filteredIdx]);
+              return;
+            }
+          }
+        }
+        // Tapped empty space — deselect
+        onClick(null);
       }
     };
 
     canvas.addEventListener('pointermove', handleMove);
-    canvas.addEventListener('pointerdown', handleClick);
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    canvas.addEventListener('pointerup', handlePointerUp);
 
     return () => {
       canvas.removeEventListener('pointermove', handleMove);
-      canvas.removeEventListener('pointerdown', handleClick);
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [gl, onClick]);
+  }, [gl, onClick, camera, nodes, filteredIndices, pointsRef]);
 
   const performRaycast = useCallback(() => {
     const points = pointsRef.current;

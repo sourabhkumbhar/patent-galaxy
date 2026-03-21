@@ -7,8 +7,11 @@ interface HoverCardProps {
   mousePosition: { x: number; y: number };
 }
 
+// Detect touch-primary device once (hover card makes no sense without a pointer)
+const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
 export default function HoverCard({ node, mousePosition }: HoverCardProps) {
-  if (!node) return null;
+  if (!node || isTouchDevice) return null;
 
   const sectionName = CPC_SECTION_NAMES[node.cpcSection] ?? node.cpcSection;
 

@@ -147,13 +147,14 @@ export default function App() {
 
       {/* Empty state hint */}
       {!selectedNode && !hoveredNode && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none">
-          <p className="text-xs px-4 py-2 rounded-full" style={{
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none max-sm:bottom-14">
+          <p className="text-xs px-4 py-2 rounded-full text-center" style={{
             color: 'var(--text-muted)',
             background: 'rgba(10, 10, 20, 0.6)',
             border: '1px solid var(--border-color)',
           }}>
-            Click a star to explore &middot; Tab to cycle &middot; Arrow keys to navigate
+            <span className="sm:hidden">Tap a star to explore &middot; Pinch to zoom</span>
+            <span className="hidden sm:inline">Click a star to explore &middot; Tab to cycle &middot; Arrow keys to navigate</span>
           </p>
         </div>
       )}
@@ -186,8 +187,8 @@ export default function App() {
         yearCounts={yearCounts}
       />
 
-      {/* Legend / Title */}
-      <div className="fixed top-4 right-4 z-20 anim-fade-in">
+      {/* Legend / Title — hidden on small screens to avoid overlap with search */}
+      <div className="fixed top-4 right-4 z-20 anim-fade-in hidden sm:block">
         <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">
           <div>
             <h1 className="text-base font-light tracking-wider" style={{ color: 'var(--text-primary)' }}>

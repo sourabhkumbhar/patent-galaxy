@@ -18,13 +18,15 @@ export default function FilterPanel({
   totalCount,
   filteredCount,
 }: FilterPanelProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(
+    typeof window !== 'undefined' && window.innerWidth < 640
+  );
   const filterPct = totalCount > 0 ? Math.round((filteredCount / totalCount) * 100) : 100;
 
   return (
     <div
-      className="fixed left-4 top-24 z-30 anim-slide-left"
-      style={{ width: isCollapsed ? 'auto' : 240, animationDelay: '0.05s' }}
+      className="fixed left-4 right-4 sm:right-auto top-20 sm:top-24 z-30 anim-slide-left"
+      style={{ width: isCollapsed ? 'auto' : undefined, maxWidth: isCollapsed ? undefined : 240, animationDelay: '0.05s' }}
     >
       <div className="glass-panel glass-panel-inner-glow overflow-hidden hover-glow">
         {/* Header */}
