@@ -6,6 +6,7 @@ interface TimeSliderProps {
   maxYear: number;
   onChange: (range: [number, number]) => void;
   yearCounts: Map<number, number>;
+  onCinematicChange?: (active: boolean) => void;
 }
 
 /**
@@ -18,8 +19,11 @@ export default function TimeSlider({
   maxYear,
   onChange,
   yearCounts,
+  onCinematicChange,
 }: TimeSliderProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isCinematic, setIsCinematic] = useState(false);
+  const [cinematicYear, setCinematicYear] = useState<number | null>(null);
   const [dragging, setDragging] = useState<'start' | 'end' | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number | null>(null);
@@ -64,6 +68,48 @@ export default function TimeSlider({
     };
   }, [isPlaying, minYear, maxYear, onChange]);
 
+  // Cinematic time-lapse mode
+  const startCinematic = useCallback(() => {
+    setIsPlaying(false);
+    setIsCinematic(true);
+    setCinematicYear(minYear);
+    onCinematicChange?.(true);
+    onChange([minYear, minYear]);
+    playYearRef.current = minYear;
+  }, [minYear, onChange, onCinematicChange]);
+
+  const stopCinematic = useCallback(() => {
+    setIsCinematic(false);
+    setCinematicYear(null);
+    onCinematicChange?.(false);
+    onChange([minYear, maxYear]);
+  }, [minYear, maxYear, onChange, onCinematicChange]);
+
+  useEffect(() => {
+    if (!isCinematic) return;
+
+    let lastTime = 0;
+    const step = (time: number) => {
+      if (time - lastTime > 800) {
+        lastTime = time;
+        playYearRef.current += 1;
+        if (playYearRef.current > maxYear) {
+          // Hold on final frame briefly, then exit
+          setTimeout(() => stopCinematic(), 1500);
+          return;
+        }
+        setCinematicYear(playYearRef.current);
+        onChange([minYear, playYearRef.current]);
+      }
+      animRef.current = requestAnimationFrame(step);
+    };
+    animRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (animRef.current !== null) cancelAnimationFrame(animRef.current);
+    };
+  }, [isCinematic, minYear, maxYear, onChange, stopCinematic]);
+
   const getYearFromMouseEvent = useCallback(
     (clientX: number) => {
       if (!trackRef.current) return minYear;
@@ -104,6 +150,30 @@ export default function TimeSlider({
   const endPct = ((yearRange[1] - minYear) / totalYears) * 100;
 
   return (
+    <>
+    {/* Cinematic year overlay */}
+    {isCinematic && cinematicYear !== null && (
+      <div
+        className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
+      >
+        <div className="text-center">
+          <div
+            className="text-8xl font-extralight tracking-widest tabular-nums"
+            style={{
+              color: 'rgba(68, 136, 255, 0.6)',
+              textShadow: '0 0 40px rgba(68, 136, 255, 0.3)',
+              transition: 'opacity 0.3s',
+            }}
+          >
+            {cinematicYear}
+          </div>
+          <div className="text-sm mt-4" style={{ color: 'rgba(136, 136, 170, 0.8)' }}>
+            {(yearCounts.get(cinematicYear) ?? 0).toLocaleString()} patents
+          </div>
+        </div>
+      </div>
+    )}
+
     <div
       className="fixed bottom-0 left-0 right-0 z-30 px-6 py-3"
       style={{
@@ -155,6 +225,30 @@ export default function TimeSlider({
                 <polygon points="2,0 12,6 2,12" />
               </svg>
             )}
+          </button>
+
+          {/* Cinematic mode button */}
+          <button
+            onClick={() => isCinematic ? stopCinematic() : startCinematic()}
+            aria-label={isCinematic ? 'Exit cinematic mode' : 'Start cinematic time-lapse'}
+            title={isCinematic ? 'Exit cinematic mode' : 'Cinematic time-lapse'}
+            className="shrink-0 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+            style={{
+              background: isCinematic ? 'rgba(68, 136, 255, 0.4)' : 'rgba(68, 136, 255, 0.1)',
+              color: '#4488ff',
+              border: `1px solid rgba(68, 136, 255, ${isCinematic ? '0.6' : '0.2'})`,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+              <line x1="7" y1="2" x2="7" y2="22" />
+              <line x1="17" y1="2" x2="17" y2="22" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <line x1="2" y1="7" x2="7" y2="7" />
+              <line x1="2" y1="17" x2="7" y2="17" />
+              <line x1="17" y1="7" x2="22" y2="7" />
+              <line x1="17" y1="17" x2="22" y2="17" />
+            </svg>
           </button>
 
           {/* Year label - start */}
@@ -222,5 +316,6 @@ export default function TimeSlider({
         </div>
       </div>
     </div>
+    </>
   );
 }

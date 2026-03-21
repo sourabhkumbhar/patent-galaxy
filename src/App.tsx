@@ -8,6 +8,7 @@ import FilterPanel from './components/FilterPanel';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
 import { usePatentData } from './hooks/usePatentData';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 
 export default function App() {
   const {
@@ -25,6 +26,14 @@ export default function App() {
   } = usePatentData();
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useKeyboardNavigation({
+    nodes: data?.nodes ?? [],
+    filteredIndices,
+    selectedIndex: filters.selectedPatentIndex,
+    onSelect: setSelectedPatentIndex,
+    onHover: setHoveredPatentIndex,
+  });
 
   const hoveredNode = useMemo(() => {
     if (!data || filters.hoveredPatentIndex === null) return null;

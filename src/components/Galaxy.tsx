@@ -8,6 +8,7 @@ import ConnectionLines from './ConnectionLines';
 import ClusterLabels from './ClusterLabels';
 import MiniMapOverlay from './MiniMap';
 import RaycastHandler from './RaycastHandler';
+import CameraController from './CameraController';
 import type { PatentData, FilterState } from '../types/patent';
 
 interface GalaxyProps {
@@ -85,6 +86,12 @@ export default function Galaxy({
           filteredIndices={filteredIndices}
           onHover={onHover}
           onClick={onClick}
+        />
+
+        {/* Camera fly-to animation */}
+        <CameraController
+          nodes={data.nodes}
+          selectedIndex={filters.selectedPatentIndex}
         />
 
         {/* MiniMap renderer (draws to external canvas) */}
