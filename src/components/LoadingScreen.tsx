@@ -50,17 +50,6 @@ export default function LoadingScreen() {
       <p className="text-sm" style={{ color: '#8888aa' }}>
         Generating universe of 10,000 patents...
       </p>
-
-      <style>{`
-        @keyframes pulse-ring {
-          0%, 100% { transform: scale(1); opacity: 0.3; }
-          50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        @keyframes glow {
-          0% { box-shadow: 0 0 20px rgba(68, 136, 255, 0.3); }
-          100% { box-shadow: 0 0 40px rgba(68, 136, 255, 0.8); }
-        }
-      `}</style>
     </div>
   );
 }

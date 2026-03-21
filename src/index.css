@@ -41,3 +41,14 @@ html, body, #root {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 100, 180, 0.6);
 }
+
+/* Loading screen animations */
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 20px rgba(68, 136, 255, 0.3); }
+  100% { box-shadow: 0 0 40px rgba(68, 136, 255, 0.8); }
+}

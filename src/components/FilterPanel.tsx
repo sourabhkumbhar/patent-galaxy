@@ -39,6 +39,8 @@ export default function FilterPanel({
         {/* Header */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-expanded={!isCollapsed}
+          aria-controls="filter-panel-content"
           className="w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-white/5"
           style={{ color: '#e0e0f0' }}
         >
@@ -61,7 +63,7 @@ export default function FilterPanel({
         </button>
 
         {!isCollapsed && (
-          <div className="px-4 pb-4 space-y-4">
+          <div id="filter-panel-content" className="px-4 pb-4 space-y-4">
             {/* Stats */}
             <div className="text-xs" style={{ color: '#8888aa' }}>
               Showing {filteredCount.toLocaleString()} of {totalCount.toLocaleString()} patents
@@ -79,6 +81,9 @@ export default function FilterPanel({
                     <button
                       key={section}
                       onClick={() => onToggleSection(section)}
+                      role="checkbox"
+                      aria-checked={isActive}
+                      aria-label={`${CPC_SECTION_NAMES[section]} (${section})`}
                       className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors hover:bg-white/5"
                       style={{
                         color: isActive ? '#c0c0d0' : '#555566',
@@ -111,6 +116,7 @@ export default function FilterPanel({
                 min={0}
                 max={50}
                 value={minCitations}
+                aria-label={`Minimum citations: ${minCitations}`}
                 onChange={(e) => onMinCitationsChange(parseInt(e.target.value, 10))}
                 className="w-full h-1 rounded-full appearance-none cursor-pointer"
                 style={{

@@ -43,6 +43,8 @@ export default function InfoPanel({
 
   return (
     <div
+      role="complementary"
+      aria-label="Patent details"
       className="fixed right-0 top-0 h-full w-96 z-40 overflow-y-auto"
       style={{
         background: 'rgba(10, 10, 20, 0.97)',
@@ -59,6 +61,7 @@ export default function InfoPanel({
         </span>
         <button
           onClick={onClose}
+          aria-label="Close patent details panel"
           className="rounded-md px-2 py-1 text-sm transition-colors hover:bg-white/10"
           style={{ color: '#8888aa' }}
         >

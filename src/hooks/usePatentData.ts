@@ -18,6 +18,7 @@ const DEFAULT_FILTERS: FilterState = {
 export function usePatentData() {
   const [data, setData] = useState<PatentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [yearRange, setYearRange] = useState<[number, number]>(DEFAULT_FILTERS.yearRange);
   const [cpcSections, setCpcSections] = useState<Set<string>>(DEFAULT_FILTERS.cpcSections);
@@ -32,9 +33,15 @@ export function usePatentData() {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const mockData = generateMockData();
-      setData(mockData);
-      setIsLoading(false);
+      try {
+        const mockData = generateMockData();
+        setData(mockData);
+      } catch (err) {
+        console.error('Failed to generate patent data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load patent data');
+      } finally {
+        setIsLoading(false);
+      }
     }, 0);
 
     return () => clearTimeout(timeoutId);
@@ -91,5 +98,6 @@ export function usePatentData() {
     setSelectedPatentIndex,
     setHoveredPatentIndex,
     isLoading,
+    error,
   };
 }

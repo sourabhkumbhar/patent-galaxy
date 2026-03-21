@@ -1,6 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { PatentNode } from '../types/patent';
 import { formatPatentId } from '../utils/formatters';
+
+const MAX_RESULTS = 12;
 
 interface SearchPanelProps {
   nodes: PatentNode[];
@@ -15,29 +17,42 @@ interface SearchPanelProps {
 export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const results = useMemo(() => {
-    if (query.length < 2) return [];
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const { results, totalMatches } = useMemo(() => {
+    if (query.length < 2) return { results: [], totalMatches: 0 };
     const q = query.toLowerCase();
     const matches: { index: number; node: PatentNode }[] = [];
-    for (let i = 0; i < nodes.length && matches.length < 12; i++) {
+    let total = 0;
+    for (let i = 0; i < nodes.length; i++) {
       const n = nodes[i];
       if (
         n.title.toLowerCase().includes(q) ||
         n.assignee.toLowerCase().includes(q) ||
         n.id.toLowerCase().includes(q)
       ) {
-        matches.push({ index: i, node: n });
+        total++;
+        if (matches.length < MAX_RESULTS) {
+          matches.push({ index: i, node: n });
+        }
       }
     }
-    return matches;
+    return { results: matches, totalMatches: total };
   }, [query, nodes]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       setQuery(val);
-      onSearch(val);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => onSearch(val), 250);
     },
     [onSearch]
   );
@@ -81,6 +96,9 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             placeholder="Search patents, companies..."
+            aria-label="Search patents"
+            aria-autocomplete="list"
+            aria-expanded={isFocused && results.length > 0}
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ color: '#e0e0f0' }}
           />
@@ -124,6 +142,18 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
                 </div>
               </button>
             ))}
+          </div>
+        )}
+
+        {isFocused && results.length > 0 && totalMatches > MAX_RESULTS && (
+          <div
+            className="px-4 py-2 text-xs"
+            style={{
+              color: '#8888aa',
+              borderTop: '1px solid rgba(100, 100, 180, 0.1)',
+            }}
+          >
+            Showing {MAX_RESULTS} of {totalMatches.toLocaleString()} matches
           </div>
         )}
 

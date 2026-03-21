@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 interface TimeSliderProps {
   yearRange: [number, number];
@@ -27,13 +27,16 @@ export default function TimeSlider({
 
   const totalYears = maxYear - minYear;
 
-  // Sparkline data
-  const maxCount = Math.max(...Array.from(yearCounts.values()), 1);
-  const sparklinePoints: { year: number; count: number; pct: number }[] = [];
-  for (let y = minYear; y <= maxYear; y++) {
-    const c = yearCounts.get(y) ?? 0;
-    sparklinePoints.push({ year: y, count: c, pct: c / maxCount });
-  }
+  // Sparkline data (memoized to avoid recalculation on every render)
+  const sparklinePoints = useMemo(() => {
+    const maxCount = Math.max(...Array.from(yearCounts.values()), 1);
+    const points: { year: number; count: number; pct: number }[] = [];
+    for (let y = minYear; y <= maxYear; y++) {
+      const c = yearCounts.get(y) ?? 0;
+      points.push({ year: y, count: c, pct: c / maxCount });
+    }
+    return points;
+  }, [yearCounts, minYear, maxYear]);
 
   // Animation playback
   useEffect(() => {
@@ -134,6 +137,7 @@ export default function TimeSlider({
               if (!isPlaying) playYearRef.current = yearRange[0];
               setIsPlaying(!isPlaying);
             }}
+            aria-label={isPlaying ? 'Pause timeline animation' : 'Play timeline animation'}
             className="shrink-0 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
             style={{
               background: 'rgba(68, 136, 255, 0.2)',
@@ -174,6 +178,12 @@ export default function TimeSlider({
 
             {/* Start handle */}
             <div
+              role="slider"
+              aria-label="Start year"
+              aria-valuemin={minYear}
+              aria-valuemax={maxYear}
+              aria-valuenow={yearRange[0]}
+              tabIndex={0}
               className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full cursor-grab"
               style={{
                 left: `${startPct}%`,
@@ -187,6 +197,12 @@ export default function TimeSlider({
 
             {/* End handle */}
             <div
+              role="slider"
+              aria-label="End year"
+              aria-valuemin={minYear}
+              aria-valuemax={maxYear}
+              aria-valuenow={yearRange[1]}
+              tabIndex={0}
               className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full cursor-grab"
               style={{
                 left: `${endPct}%`,

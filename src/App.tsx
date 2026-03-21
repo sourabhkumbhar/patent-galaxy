@@ -6,6 +6,7 @@ import SearchPanel from './components/SearchPanel';
 import TimeSlider from './components/TimeSlider';
 import FilterPanel from './components/FilterPanel';
 import LoadingScreen from './components/LoadingScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 import { usePatentData } from './hooks/usePatentData';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
     setSelectedPatentIndex,
     setHoveredPatentIndex,
     isLoading,
+    error,
   } = usePatentData();
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -63,6 +65,20 @@ export default function App() {
     return counts;
   }, [data]);
 
+  if (error) {
+    return (
+      <div
+        className="fixed inset-0 flex flex-col items-center justify-center"
+        style={{ background: '#0a0a12' }}
+      >
+        <h2 className="text-xl font-light mb-4" style={{ color: '#e0e0f0' }}>
+          Failed to load patent data
+        </h2>
+        <p className="text-sm" style={{ color: '#8888aa' }}>{error}</p>
+      </div>
+    );
+  }
+
   if (isLoading || !data) {
     return <LoadingScreen />;
   }
@@ -70,14 +86,16 @@ export default function App() {
   return (
     <div className="w-full h-full relative">
       {/* 3D Galaxy Scene */}
-      <Galaxy
-        data={data}
-        filters={filters}
-        filteredIndices={filteredIndices}
-        onHover={setHoveredPatentIndex}
-        onClick={setSelectedPatentIndex}
-        onMouseMove={setMousePos}
-      />
+      <ErrorBoundary>
+        <Galaxy
+          data={data}
+          filters={filters}
+          filteredIndices={filteredIndices}
+          onHover={setHoveredPatentIndex}
+          onClick={setSelectedPatentIndex}
+          onMouseMove={setMousePos}
+        />
+      </ErrorBoundary>
 
       {/* Search Panel (top-left) */}
       <SearchPanel
