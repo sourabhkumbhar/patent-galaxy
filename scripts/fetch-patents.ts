@@ -253,21 +253,47 @@ async function main() {
 
   console.log(`\n  Found ${allPatents.length.toLocaleString()} utility patents (${MIN_YEAR}-${MAX_YEAR})`);
 
-  // ── Sample 50k patents ──
+  // Build lookup of all eligible patent IDs for citation counting
+  const allPatentIdSet = new Set(allPatents.map(p => p.patentId));
 
-  const rand = mulberry32(42);
-  let selectedPatents: RawPatent[];
+  // ── Step 2: Count internal citations per patent ──
 
-  if (allPatents.length <= TARGET_PATENTS) {
-    selectedPatents = allPatents;
-  } else {
-    // Fisher-Yates shuffle with seeded PRNG, take first TARGET_PATENTS
-    for (let i = allPatents.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [allPatents[i], allPatents[j]] = [allPatents[j], allPatents[i]];
-    }
-    selectedPatents = allPatents.slice(0, TARGET_PATENTS);
-  }
+  console.log('Step 2/6: Counting citations per patent (this may take a while)...');
+  const citTsv = ensureUnzipped('g_us_patent_citation.tsv.zip');
+
+  const citationCount = new Map<string, number>();
+  let eCitingIdx = 0, eCitedIdx = 0;
+
+  await streamTsv(citTsv,
+    (headers) => {
+      eCitingIdx = colIndex(headers, 'patent_id');
+      eCitedIdx = colIndex(headers, 'citation_patent_id');
+    },
+    (cols) => {
+      const citing = cols[eCitingIdx];
+      const cited = cols[eCitedIdx];
+
+      // Count only citations where both patents are in our year range
+      if (allPatentIdSet.has(citing) && allPatentIdSet.has(cited) && citing !== cited) {
+        citationCount.set(citing, (citationCount.get(citing) || 0) + 1);
+        citationCount.set(cited, (citationCount.get(cited) || 0) + 1);
+      }
+    },
+    'g_us_patent_citation',
+  );
+
+  console.log(`  ${citationCount.size.toLocaleString()} patents have internal citations`);
+
+  // ── Select top 100k most-connected patents ──
+
+  // Sort by citation count descending, then take top TARGET_PATENTS
+  allPatents.sort((a, b) => {
+    const ca = citationCount.get(a.patentId) || 0;
+    const cb = citationCount.get(b.patentId) || 0;
+    return cb - ca; // highest citation count first
+  });
+
+  const selectedPatents = allPatents.slice(0, TARGET_PATENTS);
 
   // Sort by date for consistent output
   selectedPatents.sort((a, b) => a.year - b.year || a.month - b.month);
@@ -276,11 +302,16 @@ async function main() {
   const patentIdToIndex = new Map<string, number>();
   selectedPatents.forEach((p, i) => patentIdToIndex.set(p.patentId, i));
 
-  console.log(`  Selected ${selectedPatents.length.toLocaleString()} patents\n`);
+  const minCitations = citationCount.get(selectedPatents[selectedPatents.length - 1]?.patentId) || 0;
+  console.log(`  Selected ${selectedPatents.length.toLocaleString()} most-connected patents (min ${minCitations} internal citations)\n`);
 
-  // ── Step 2: Parse g_cpc_current.tsv — get CPC for selected patents ──
+  // Free memory — no longer needed
+  allPatentIdSet.clear();
+  citationCount.clear();
 
-  console.log('Step 2/5: Reading CPC classifications...');
+  // ── Step 3: Parse g_cpc_current.tsv — get CPC for selected patents ──
+
+  console.log('Step 3/6: Reading CPC classifications...');
   const cpcTsv = ensureUnzipped('g_cpc_current.tsv.zip');
 
   const patentCpc = new Map<string, { section: string; cpcClass: string; subclass: string }>();
@@ -314,14 +345,12 @@ async function main() {
 
   console.log(`  CPC data for ${patentCpc.size.toLocaleString()} patents\n`);
 
-  // ── Step 3: Parse g_us_patent_citation.tsv — real citation edges ──
+  // ── Step 4: Re-scan citations for selected patents to build edges ──
 
-  console.log('Step 3/5: Reading citation data (this may take a while)...');
-  const citTsv = ensureUnzipped('g_us_patent_citation.tsv.zip');
+  console.log('Step 4/6: Building citation edges for selected patents...');
 
   const edges: [number, number][] = [];
   const edgeSet = new Set<string>();
-  let eCitingIdx = 0, eCitedIdx = 0;
 
   await streamTsv(citTsv,
     (headers) => {
@@ -343,17 +372,30 @@ async function main() {
     'g_us_patent_citation',
   );
 
-  console.log(`  Found ${edges.length.toLocaleString()} internal citation edges\n`);
+  // Cap edges for file size — 500k edges is plenty for the visualization
+  // (ConnectionLines only shows edges for the selected/hovered patent)
+  const MAX_EDGES = 500_000;
+  if (edges.length > MAX_EDGES) {
+    // Shuffle and truncate to keep a diverse sample
+    const edgeRand = mulberry32(99);
+    for (let i = edges.length - 1; i > 0; i--) {
+      const j = Math.floor(edgeRand() * (i + 1));
+      [edges[i], edges[j]] = [edges[j], edges[i]];
+    }
+    edges.length = MAX_EDGES;
+  }
 
-  // ── Step 4: Fetch annualized CSVs for assignees & inventor counts ──
+  console.log(`  Found ${edges.length.toLocaleString()} citation edges (capped at ${MAX_EDGES.toLocaleString()})\n`);
 
-  console.log('Step 4/5: Fetching assignee/inventor data from annualized CSVs...');
+  // ── Step 5: Fetch annualized CSVs for assignees & inventor counts ──
+
+  console.log('Step 5/6: Fetching assignee/inventor data from annualized CSVs...');
   const annualData = await fetchAnnualizedData(selectedIds);
   console.log(`  Annualized data for ${annualData.size.toLocaleString()} patents\n`);
 
-  // ── Step 5: Build output ─────────────────────────────────────────
+  // ── Step 6: Build output ─────────────────────────────────────────
 
-  console.log('Step 5/5: Building output...');
+  console.log('Step 6/6: Building output...');
   const posRand = mulberry32(42);
 
   // Count citations per patent for sizing
