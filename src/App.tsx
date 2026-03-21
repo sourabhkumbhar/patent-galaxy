@@ -26,6 +26,8 @@ export default function App() {
     setHoveredPatentIndex,
     isLoading,
     error,
+    loadProgress,
+    yearBounds,
   } = usePatentData();
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -107,7 +109,7 @@ export default function App() {
   }
 
   if (isLoading || !data) {
-    return <LoadingScreen />;
+    return <LoadingScreen progress={loadProgress} />;
   }
 
   return (
@@ -181,8 +183,8 @@ export default function App() {
       {/* Time Slider (bottom) */}
       <TimeSlider
         yearRange={filters.yearRange}
-        minYear={2018}
-        maxYear={2023}
+        minYear={yearBounds.min}
+        maxYear={yearBounds.max}
         onChange={setYearRange}
         yearCounts={yearCounts}
       />

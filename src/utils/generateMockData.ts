@@ -406,8 +406,8 @@ function generateCitationCount(rand: () => number): number {
 // ---------------------------------------------------------------------------
 // Main generation
 // ---------------------------------------------------------------------------
-const TOTAL_NODES = 10000;
-const TOTAL_EDGES = 30000;
+const TOTAL_NODES = 50000;
+const TOTAL_EDGES = 150000;
 const SEED = 42;
 
 export function generateMockData(): PatentData {
@@ -438,7 +438,7 @@ function generateDataInternal(rand: () => number): PatentData {
       ? subclasses[Math.floor(rand() * subclasses.length)]
       : cpcClass + 'B';
 
-    const year = 2018 + Math.floor(rand() * 6); // 2018-2023
+    const year = 2010 + Math.floor(rand() * 15); // 2010-2024
     const month = 1 + Math.floor(rand() * 12);
     const citationCount = generateCitationCount(rand);
     const inventorCount = 1 + Math.floor(rand() * rand() * 12); // skewed toward 1-3

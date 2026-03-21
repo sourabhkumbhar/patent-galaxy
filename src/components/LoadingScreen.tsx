@@ -1,8 +1,21 @@
+interface LoadingScreenProps {
+  progress?: number; // 0-100
+}
+
 /**
- * Full-screen loading screen shown while patent data is being generated/loaded.
- * Features a pulsing galaxy animation.
+ * Full-screen loading screen shown while patent data is being loaded.
+ * Features a pulsing galaxy animation and optional download progress bar.
  */
-export default function LoadingScreen() {
+export default function LoadingScreen({ progress }: LoadingScreenProps) {
+  const statusText =
+    progress === undefined || progress === 0
+      ? 'Initializing...'
+      : progress < 95
+        ? `Loading patent data... ${progress}%`
+        : progress < 100
+          ? 'Processing patents...'
+          : 'Preparing visualization...';
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center"
       style={{ background: '#0a0a12' }}
@@ -47,9 +60,24 @@ export default function LoadingScreen() {
       <h1 className="text-2xl font-light tracking-wide mb-2" style={{ color: '#e0e0f0' }}>
         Patent Galaxy
       </h1>
-      <p className="text-sm" style={{ color: '#8888aa' }}>
-        Generating universe of 10,000 patents...
+      <p className="text-sm mb-6" style={{ color: '#8888aa' }}>
+        {statusText}
       </p>
+
+      {/* Progress bar */}
+      {progress !== undefined && progress > 0 && (
+        <div className="w-64 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(100, 100, 180, 0.15)' }}>
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${progress}%`,
+              background: 'linear-gradient(90deg, #4488ff, #22d3ee)',
+              boxShadow: '0 0 8px rgba(68, 136, 255, 0.4)',
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

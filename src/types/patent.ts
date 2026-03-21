@@ -37,6 +37,32 @@ export interface PatentData {
   clusters: Cluster[];
 }
 
+// Columnar format used in the static JSON data file (public/data/patents.json)
+export interface ColumnarNodes {
+  id: string[];
+  title: string[];
+  year: number[];
+  month: number[];
+  cpcSection: string[];
+  cpcClass: string[];
+  cpcSubclass: string[];
+  assignee: string[];
+  inventorCount: number[];
+  citationCount: number[];
+  x: number[];
+  y: number[];
+  z: number[];
+  color: string[];
+  size: number[];
+}
+
+export interface PatentDataFile {
+  meta: { minYear: number; maxYear: number; count: number };
+  nodes: ColumnarNodes;
+  edges: [number, number][];
+  clusters: Cluster[];
+}
+
 export interface FilterState {
   yearRange: [number, number];
   cpcSections: Set<string>;

@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Generated patent data (run npm run fetch-data to generate)
+public/data/patents.json
+
 # Data pipeline
 data-pipeline/raw/
 data-pipeline/processed/
