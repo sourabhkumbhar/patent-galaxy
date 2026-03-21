@@ -3,13 +3,13 @@ import { generateMockPaperData } from '../utils/generateMockPaperData';
 
 const ARXIV_CATEGORIES = [
   { id: 'cs', label: 'Computer Science', color: '#00d4ff' },
-  { id: 'math', label: 'Mathematics', color: '#ff6b9d' },
-  { id: 'physics', label: 'Physics', color: '#7c4dff' },
-  { id: 'stat', label: 'Statistics', color: '#00e5a0' },
-  { id: 'eess', label: 'Electrical Engineering', color: '#ffc107' },
-  { id: 'q-bio', label: 'Quantitative Biology', color: '#76ff03' },
-  { id: 'q-fin', label: 'Quantitative Finance', color: '#ff5252' },
-  { id: 'econ', label: 'Economics', color: '#ffab40' },
+  { id: 'math', label: 'Mathematics', color: '#ff5577' },
+  { id: 'physics', label: 'Physics', color: '#a855f7' },
+  { id: 'stat', label: 'Statistics', color: '#34d399' },
+  { id: 'eess', label: 'Electrical Engineering', color: '#facc15' },
+  { id: 'q-bio', label: 'Quantitative Biology', color: '#f97316' },
+  { id: 'q-fin', label: 'Quantitative Finance', color: '#60a5fa' },
+  { id: 'econ', label: 'Economics', color: '#fb7185' },
 ];
 
 function formatPaperId(id: string): string {
@@ -46,8 +46,8 @@ export const paperConfig: ProjectConfig = {
 
   background: '#050510',
   fogColor: '#050510',
-  fogNear: 400,
-  fogFar: 1100,
+  fogNear: 500,
+  fogFar: 1400,
 
   categoryNames: Object.fromEntries(ARXIV_CATEGORIES.map(c => [c.id, c.label])),
 };

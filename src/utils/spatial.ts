@@ -15,8 +15,8 @@ CPC_SECTIONS.forEach((section, i) => {
  */
 export function getSectionCentroid(section: string): { x: number; y: number; z: number } {
   const angle = SECTION_ANGLES[section] ?? 0;
-  const radius = 104;
-  const elevation = ((CPC_SECTIONS.indexOf(section) % 3) - 1) * 26;
+  const radius = 130;
+  const elevation = ((CPC_SECTIONS.indexOf(section) % 3) - 1) * 34;
   return {
     x: Math.cos(angle) * radius,
     y: elevation,
@@ -38,12 +38,12 @@ export function generatePatentPosition(
 
   // Use CPC class number for radial variation
   const classNum = parseInt(cpcClass.replace(/\D/g, ''), 10) || 0;
-  const classOffset = (classNum % 20) * 2.0;
+  const classOffset = (classNum % 20) * 2.5;
 
   // Gaussian-like random spread
-  const spreadX = (Math.random() + Math.random() + Math.random() - 1.5) * 33;
-  const spreadY = (Math.random() + Math.random() + Math.random() - 1.5) * 33;
-  const spreadZ = (Math.random() + Math.random() + Math.random() - 1.5) * 33;
+  const spreadX = (Math.random() + Math.random() + Math.random() - 1.5) * 42;
+  const spreadY = (Math.random() + Math.random() + Math.random() - 1.5) * 42;
+  const spreadZ = (Math.random() + Math.random() + Math.random() - 1.5) * 42;
 
   return {
     x: centroid.x + spreadX + classOffset * Math.cos(classNum),

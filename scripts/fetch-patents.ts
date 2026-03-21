@@ -28,8 +28,8 @@ const MAX_YEAR = 2025;
 // ── CPC colors & sections ──────────────────────────────────────────────
 
 const CPC_COLORS: Record<string, string> = {
-  A: '#ff6b6b', B: '#ffa94d', C: '#51cf66', D: '#cc5de8',
-  E: '#a0714f', F: '#74c0fc', G: '#22d3ee', H: '#ffd43b', Y: '#ff8787',
+  A: '#ff5577', B: '#22d3ee', C: '#ffb020', D: '#a855f7',
+  E: '#34d399', F: '#f97316', G: '#60a5fa', H: '#facc15', Y: '#c084fc',
 };
 const CPC_SECTION_NAMES: Record<string, string> = {
   A: 'Human Necessities', B: 'Operations & Transport', C: 'Chemistry & Metallurgy',
@@ -55,18 +55,18 @@ CPC_SECTIONS.forEach((s, i) => { SECTION_ANGLES[s] = (i / CPC_SECTIONS.length) *
 
 function getSectionCentroid(section: string) {
   const angle = SECTION_ANGLES[section] ?? 0;
-  const r = 104;
-  const elev = ((CPC_SECTIONS.indexOf(section) % 3) - 1) * 26;
+  const r = 130;
+  const elev = ((CPC_SECTIONS.indexOf(section) % 3) - 1) * 34;
   return { x: Math.cos(angle) * r, y: elev, z: Math.sin(angle) * r };
 }
 
 function genPos(section: string, cpcClass: string, rand: () => number) {
   const c = getSectionCentroid(section);
   const cn = parseInt(cpcClass.replace(/\D/g, ''), 10) || 0;
-  const co = (cn % 20) * 2.0;
-  const sx = (rand() + rand() + rand() - 1.5) * 33;
-  const sy = (rand() + rand() + rand() - 1.5) * 33;
-  const sz = (rand() + rand() + rand() - 1.5) * 33;
+  const co = (cn % 20) * 2.5;
+  const sx = (rand() + rand() + rand() - 1.5) * 42;
+  const sy = (rand() + rand() + rand() - 1.5) * 42;
+  const sz = (rand() + rand() + rand() - 1.5) * 42;
   return {
     x: +(c.x + sx + co * Math.cos(cn)).toFixed(1),
     y: +(c.y + sy).toFixed(1),

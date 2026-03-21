@@ -196,6 +196,32 @@ function AppInner({ config }: { config: ProjectConfig }) {
         yearCounts={yearCounts}
       />
 
+      {/* Recenter camera button */}
+      <button
+        onClick={() => window.dispatchEvent(new Event('galaxy:recenter'))}
+        title="Recenter camera"
+        className="fixed z-30 glass-panel hover-glow btn-interactive"
+        style={{
+          bottom: 240,
+          right: 16,
+          width: 40,
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 8,
+          padding: 0,
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-secondary)' }}>
+          <circle cx="12" cy="12" r="3" />
+          <line x1="12" y1="2" x2="12" y2="6" />
+          <line x1="12" y1="18" x2="12" y2="22" />
+          <line x1="2" y1="12" x2="6" y2="12" />
+          <line x1="18" y1="12" x2="22" y2="12" />
+        </svg>
+      </button>
+
       {/* Legend / Title — hidden on small screens to avoid overlap with search */}
       <div className="fixed top-4 right-4 z-20 anim-fade-in hidden sm:block">
         <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">

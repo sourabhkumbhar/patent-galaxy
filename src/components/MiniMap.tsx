@@ -74,7 +74,7 @@ export default function MiniMapOverlay({ nodes, filteredIndices }: MiniMapOverla
 
     const w = canvas.width;
     const h = canvas.height;
-    const scale = 0.45;
+    const scale = 0.35;
     const cx = w / 2;
     const cy = h / 2;
 

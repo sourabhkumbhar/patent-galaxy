@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
 const PARTICLE_COUNT = 2000;
-const SPREAD = 250;
+const SPREAD = 320;
 
 const dustVertexShader = `
   attribute float aSize;

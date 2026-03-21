@@ -52,7 +52,7 @@ export default function Galaxy({
   return (
     <div className="w-full h-full" onPointerMove={handlePointerMove}>
       <Canvas
-        camera={{ position: [0, 100, 260], fov: 60, near: 0.1, far: 3000 }}
+        camera={{ position: [0, 120, 320], fov: 60, near: 0.1, far: 4000 }}
         gl={{
           antialias: false,
           powerPreference: 'high-performance',
@@ -124,7 +124,7 @@ export default function Galaxy({
           enableDamping
           dampingFactor={0.05}
           minDistance={15}
-          maxDistance={800}
+          maxDistance={1000}
           rotateSpeed={0.5}
           zoomSpeed={0.8}
           panSpeed={0.5}

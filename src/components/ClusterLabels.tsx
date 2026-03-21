@@ -19,7 +19,7 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
         if (!visibleSections.has(cluster.shortLabel)) return null;
 
         return (
-          <group key={cluster.label} position={[cluster.x, cluster.y + 40, cluster.z]}>
+          <group key={cluster.label} position={[cluster.x, cluster.y + 50, cluster.z]}>
             <Text
               fontSize={5}
               color={cluster.color}

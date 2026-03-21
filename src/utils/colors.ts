@@ -3,15 +3,15 @@
  * Each section represents a major technological domain.
  */
 export const CPC_COLORS: Record<string, string> = {
-  A: '#ff6b6b', // Human Necessities - warm coral/red
-  B: '#ffa94d', // Operations/Transport - amber/orange
-  C: '#51cf66', // Chemistry/Metallurgy - green
-  D: '#cc5de8', // Textiles/Paper - pale lavender
-  E: '#a0714f', // Fixed Constructions - earthy brown
-  F: '#74c0fc', // Mechanical Engineering - steel blue
-  G: '#22d3ee', // Physics - electric cyan
-  H: '#ffd43b', // Electricity - golden yellow
-  Y: '#ff8787', // Emerging cross-sectional tech - soft red
+  A: '#ff5577', // Human Necessities - rose red
+  B: '#22d3ee', // Operations/Transport - cyan
+  C: '#ffb020', // Chemistry/Metallurgy - amber
+  D: '#a855f7', // Textiles/Paper - purple
+  E: '#34d399', // Fixed Constructions - emerald
+  F: '#f97316', // Mechanical Engineering - orange
+  G: '#60a5fa', // Physics - sky blue
+  H: '#facc15', // Electricity - golden yellow
+  Y: '#c084fc', // Emerging cross-sectional tech - lavender
 };
 
 export const CPC_SECTION_NAMES: Record<string, string> = {

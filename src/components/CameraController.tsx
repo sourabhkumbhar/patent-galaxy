@@ -51,7 +51,7 @@ export default function CameraController({
     hasPlayedIntro.current = true;
 
     // Start camera far out above the galaxy
-    camera.position.set(0, 250, 650);
+    camera.position.set(0, 300, 800);
     camera.lookAt(0, 0, 0);
 
     if (controlsRef.current) {
@@ -59,12 +59,12 @@ export default function CameraController({
       controlsRef.current.target.set(0, 0, 0);
     }
 
-    const proxy = { x: 0, y: 250, z: 650 };
+    const proxy = { x: 0, y: 300, z: 800 };
 
     gsap.to(proxy, {
       x: 0,
-      y: 100,
-      z: 260,
+      y: 120,
+      z: 320,
       duration: 3.5,
       ease: 'expo.out',
       onUpdate: () => {
@@ -83,6 +83,46 @@ export default function CameraController({
         resetIdleTimer();
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Recenter camera ──
+  useEffect(() => {
+    const handleRecenter = () => {
+      isAutoOrbit.current = false;
+      isAnimating.current = false;
+
+      const proxy = {
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z,
+      };
+
+      gsap.to(proxy, {
+        x: 0,
+        y: 120,
+        z: 320,
+        duration: 1.5,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          camera.position.set(proxy.x, proxy.y, proxy.z);
+          camera.lookAt(0, 0, 0);
+          if (controlsRef.current) {
+            controlsRef.current.target.set(0, 0, 0);
+            controlsRef.current.update();
+          }
+        },
+        onComplete: () => {
+          if (controlsRef.current) {
+            controlsRef.current.enabled = true;
+          }
+          resetIdleTimer();
+        },
+      });
+    };
+
+    window.addEventListener('galaxy:recenter', handleRecenter);
+    return () => window.removeEventListener('galaxy:recenter', handleRecenter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

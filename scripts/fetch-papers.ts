@@ -38,8 +38,8 @@ const RATE_LIMIT_MS = 120; // ~8/sec, safely under 10/sec limit
 // ── arXiv category mapping ─────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
-  cs: '#00d4ff', math: '#ff6b9d', physics: '#7c4dff', stat: '#00e5a0',
-  eess: '#ffc107', 'q-bio': '#76ff03', 'q-fin': '#ff5252', econ: '#ffab40',
+  cs: '#00d4ff', math: '#ff5577', physics: '#a855f7', stat: '#34d399',
+  eess: '#facc15', 'q-bio': '#f97316', 'q-fin': '#60a5fa', econ: '#fb7185',
 };
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -84,19 +84,19 @@ ALL_CATEGORIES.forEach((c, i) => { CATEGORY_ANGLES[c] = (i / ALL_CATEGORIES.leng
 
 function getCategoryCentroid(cat: string) {
   const angle = CATEGORY_ANGLES[cat] ?? 0;
-  const r = 104;
+  const r = 130;
   const idx = ALL_CATEGORIES.indexOf(cat);
-  const elev = ((idx % 3) - 1) * 26;
+  const elev = ((idx % 3) - 1) * 34;
   return { x: Math.cos(angle) * r, y: elev, z: Math.sin(angle) * r };
 }
 
 function genPos(mainCat: string, subCat: string, rand: () => number) {
   const c = getCategoryCentroid(mainCat);
   const subNum = subCat.charCodeAt(subCat.length - 1) || 0;
-  const subOffset = (subNum % 15) * 2.0;
-  const sx = (rand() + rand() + rand() - 1.5) * 33;
-  const sy = (rand() + rand() + rand() - 1.5) * 33;
-  const sz = (rand() + rand() + rand() - 1.5) * 33;
+  const subOffset = (subNum % 15) * 2.5;
+  const sx = (rand() + rand() + rand() - 1.5) * 42;
+  const sy = (rand() + rand() + rand() - 1.5) * 42;
+  const sz = (rand() + rand() + rand() - 1.5) * 42;
   return {
     x: +(c.x + sx + subOffset * Math.cos(subNum)).toFixed(1),
     y: +(c.y + sy).toFixed(1),

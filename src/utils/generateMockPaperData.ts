@@ -30,31 +30,31 @@ const FIELDS: FieldDef[] = [
     subcategories: ['cs.AI', 'cs.LG', 'cs.CV', 'cs.CL', 'cs.CR', 'cs.DS', 'cs.SE', 'cs.RO', 'cs.NE', 'cs.DB', 'cs.DC', 'cs.HC'],
   },
   {
-    id: 'math', label: 'Mathematics', color: '#ff6b9d', weight: 0.18,
+    id: 'math', label: 'Mathematics', color: '#ff5577', weight: 0.18,
     subcategories: ['math.AG', 'math.AP', 'math.CO', 'math.DG', 'math.NT', 'math.OC', 'math.PR', 'math.ST'],
   },
   {
-    id: 'physics', label: 'Physics', color: '#7c4dff', weight: 0.20,
+    id: 'physics', label: 'Physics', color: '#a855f7', weight: 0.20,
     subcategories: ['hep-th', 'hep-ph', 'cond-mat', 'quant-ph', 'astro-ph', 'gr-qc', 'nucl-th', 'physics.optics'],
   },
   {
-    id: 'stat', label: 'Statistics', color: '#00e5a0', weight: 0.08,
+    id: 'stat', label: 'Statistics', color: '#34d399', weight: 0.08,
     subcategories: ['stat.ML', 'stat.ME', 'stat.AP', 'stat.TH', 'stat.CO'],
   },
   {
-    id: 'eess', label: 'Electrical Engineering', color: '#ffc107', weight: 0.10,
+    id: 'eess', label: 'Electrical Engineering', color: '#facc15', weight: 0.10,
     subcategories: ['eess.SP', 'eess.IV', 'eess.AS', 'eess.SY'],
   },
   {
-    id: 'q-bio', label: 'Quantitative Biology', color: '#76ff03', weight: 0.06,
+    id: 'q-bio', label: 'Quantitative Biology', color: '#f97316', weight: 0.06,
     subcategories: ['q-bio.BM', 'q-bio.GN', 'q-bio.NC', 'q-bio.PE', 'q-bio.QM'],
   },
   {
-    id: 'q-fin', label: 'Quantitative Finance', color: '#ff5252', weight: 0.04,
+    id: 'q-fin', label: 'Quantitative Finance', color: '#60a5fa', weight: 0.04,
     subcategories: ['q-fin.CP', 'q-fin.MF', 'q-fin.PM', 'q-fin.RM', 'q-fin.ST'],
   },
   {
-    id: 'econ', label: 'Economics', color: '#ffab40', weight: 0.04,
+    id: 'econ', label: 'Economics', color: '#fb7185', weight: 0.04,
     subcategories: ['econ.EM', 'econ.GN', 'econ.TH'],
   },
 ];
@@ -220,9 +220,9 @@ FIELDS.forEach((field, i) => {
 
 function getFieldCentroid(fieldId: string): { x: number; y: number; z: number } {
   const angle = FIELD_ANGLES[fieldId] ?? 0;
-  const radius = 104;
+  const radius = 130;
   const idx = FIELDS.findIndex(f => f.id === fieldId);
-  const elevation = ((idx % 3) - 1) * 26;
+  const elevation = ((idx % 3) - 1) * 34;
   return {
     x: Math.cos(angle) * radius,
     y: elevation,
@@ -237,11 +237,11 @@ function generatePaperPosition(
   const centroid = getFieldCentroid(fieldId);
 
   const subNum = subcategory.charCodeAt(subcategory.length - 1) || 0;
-  const subOffset = (subNum % 15) * 2.0;
+  const subOffset = (subNum % 15) * 2.5;
 
-  const spreadX = (Math.random() + Math.random() + Math.random() - 1.5) * 33;
-  const spreadY = (Math.random() + Math.random() + Math.random() - 1.5) * 33;
-  const spreadZ = (Math.random() + Math.random() + Math.random() - 1.5) * 33;
+  const spreadX = (Math.random() + Math.random() + Math.random() - 1.5) * 42;
+  const spreadY = (Math.random() + Math.random() + Math.random() - 1.5) * 42;
+  const spreadZ = (Math.random() + Math.random() + Math.random() - 1.5) * 42;
 
   return {
     x: centroid.x + spreadX + subOffset * Math.cos(subNum),

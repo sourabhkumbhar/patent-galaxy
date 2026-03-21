@@ -124,7 +124,7 @@ export default function StarField({
       vDepth = clamp(-mvPosition.z / 1000.0, 0.0, 1.0);
 
       float twinkle = 1.0 + 0.12 * sin(uTime * 1.5 + position.x * 0.5 + position.y * 0.3);
-      gl_PointSize = size * twinkle * (260.0 / -mvPosition.z);
+      gl_PointSize = size * twinkle * (320.0 / -mvPosition.z);
       gl_PointSize = max(gl_PointSize, 1.5);
       gl_Position = projectionMatrix * mvPosition;
     }

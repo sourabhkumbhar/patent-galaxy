@@ -2,15 +2,15 @@ import type { ProjectConfig } from './types';
 import { generateMockData } from '../utils/generateMockData';
 
 const CPC_CATEGORIES = [
-  { id: 'A', label: 'Human Necessities', color: '#ff6b6b' },
-  { id: 'B', label: 'Operations & Transport', color: '#ffa94d' },
-  { id: 'C', label: 'Chemistry & Metallurgy', color: '#51cf66' },
-  { id: 'D', label: 'Textiles & Paper', color: '#cc5de8' },
-  { id: 'E', label: 'Fixed Constructions', color: '#a0714f' },
-  { id: 'F', label: 'Mechanical Engineering', color: '#74c0fc' },
-  { id: 'G', label: 'Physics', color: '#22d3ee' },
-  { id: 'H', label: 'Electricity', color: '#ffd43b' },
-  { id: 'Y', label: 'Emerging Tech', color: '#ff8787' },
+  { id: 'A', label: 'Human Necessities', color: '#ff5577' },
+  { id: 'B', label: 'Operations & Transport', color: '#22d3ee' },
+  { id: 'C', label: 'Chemistry & Metallurgy', color: '#ffb020' },
+  { id: 'D', label: 'Textiles & Paper', color: '#a855f7' },
+  { id: 'E', label: 'Fixed Constructions', color: '#34d399' },
+  { id: 'F', label: 'Mechanical Engineering', color: '#f97316' },
+  { id: 'G', label: 'Physics', color: '#60a5fa' },
+  { id: 'H', label: 'Electricity', color: '#facc15' },
+  { id: 'Y', label: 'Emerging Tech', color: '#c084fc' },
 ];
 
 function formatPatentId(id: string): string {
@@ -52,8 +52,8 @@ export const patentConfig: ProjectConfig = {
 
   background: '#0a0a12',
   fogColor: '#0a0a12',
-  fogNear: 400,
-  fogFar: 1100,
+  fogNear: 500,
+  fogFar: 1400,
 
   categoryNames: Object.fromEntries(CPC_CATEGORIES.map(c => [c.id, c.label])),
 };
