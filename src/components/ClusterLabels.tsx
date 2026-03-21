@@ -1,6 +1,6 @@
 import type { Cluster } from '../types/patent';
 import { useProject } from '../config/ProjectContext';
-import { Text } from '@react-three/drei';
+import { Text, Billboard } from '@react-three/drei';
 
 interface ClusterLabelsProps {
   clusters: Cluster[];
@@ -19,7 +19,7 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
         if (!visibleSections.has(cluster.shortLabel)) return null;
 
         return (
-          <group key={cluster.label} position={[cluster.x, cluster.y + 50, cluster.z]}>
+          <Billboard key={cluster.label} position={[cluster.x, cluster.y + 50, cluster.z]} follow lockX={false} lockY={false} lockZ={false}>
             <Text
               fontSize={5}
               color={cluster.color}
@@ -43,7 +43,7 @@ export default function ClusterLabels({ clusters, visibleSections }: ClusterLabe
             >
               {cluster.count.toLocaleString()} {config.nodeLabelPlural}
             </Text>
-          </group>
+          </Billboard>
         );
       })}
     </group>
