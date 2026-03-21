@@ -9,6 +9,7 @@ import ClusterLabels from './ClusterLabels';
 import MiniMapOverlay from './MiniMap';
 import RaycastHandler from './RaycastHandler';
 import CameraController from './CameraController';
+import CitationPathLines from './CitationPathLines';
 import type { PatentData, FilterState } from '../types/patent';
 
 interface GalaxyProps {
@@ -18,6 +19,7 @@ interface GalaxyProps {
   onHover: (index: number | null) => void;
   onClick: (index: number | null) => void;
   onMouseMove: (pos: { x: number; y: number }) => void;
+  citationPath?: number[] | null;
 }
 
 /**
@@ -31,6 +33,7 @@ export default function Galaxy({
   onHover,
   onClick,
   onMouseMove,
+  citationPath,
 }: GalaxyProps) {
   const pointsRef = useRef<THREE.Points>(null);
 
@@ -87,6 +90,9 @@ export default function Galaxy({
           onHover={onHover}
           onClick={onClick}
         />
+
+        {/* Citation path visualization */}
+        <CitationPathLines nodes={data.nodes} path={citationPath ?? null} />
 
         {/* Camera fly-to animation */}
         <CameraController

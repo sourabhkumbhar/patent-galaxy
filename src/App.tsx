@@ -7,8 +7,11 @@ import TimeSlider from './components/TimeSlider';
 import FilterPanel from './components/FilterPanel';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
+import PathTracerPanel from './components/PathTracerPanel';
+import ShareButton from './components/ShareButton';
 import { usePatentData } from './hooks/usePatentData';
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
+import { useShareState } from './hooks/useShareState';
 
 export default function App() {
   const {
@@ -26,6 +29,7 @@ export default function App() {
   } = usePatentData();
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [citationPath, setCitationPath] = useState<number[] | null>(null);
 
   useKeyboardNavigation({
     nodes: data?.nodes ?? [],
@@ -33,6 +37,20 @@ export default function App() {
     selectedIndex: filters.selectedPatentIndex,
     onSelect: setSelectedPatentIndex,
     onHover: setHoveredPatentIndex,
+  });
+
+  const { copyShareUrl } = useShareState({
+    yearRange: filters.yearRange,
+    cpcSections: filters.cpcSections,
+    minCitations: filters.minCitations,
+    searchQuery: filters.searchQuery,
+    selectedPatentIndex: filters.selectedPatentIndex,
+    setYearRange,
+    setCpcSections,
+    setMinCitations,
+    setSearchQuery,
+    setSelectedPatentIndex,
+    isLoading,
   });
 
   const hoveredNode = useMemo(() => {
@@ -103,6 +121,7 @@ export default function App() {
           onHover={setHoveredPatentIndex}
           onClick={setSelectedPatentIndex}
           onMouseMove={setMousePos}
+          citationPath={citationPath}
         />
       </ErrorBoundary>
 
@@ -136,6 +155,15 @@ export default function App() {
         onNavigate={handleNavigate}
       />
 
+      {/* Citation Path Tracer */}
+      <PathTracerPanel
+        nodes={data.nodes}
+        edges={data.edges}
+        selectedIndex={filters.selectedPatentIndex}
+        onPathChange={setCitationPath}
+        onNavigate={handleNavigate}
+      />
+
       {/* Time Slider (bottom) */}
       <TimeSlider
         yearRange={filters.yearRange}
@@ -150,9 +178,10 @@ export default function App() {
         <h1 className="text-lg font-light tracking-wider" style={{ color: '#e0e0f0' }}>
           Patent Galaxy
         </h1>
-        <p className="text-xs" style={{ color: '#8888aa' }}>
+        <p className="text-xs mb-2" style={{ color: '#8888aa' }}>
           {filteredIndices.length.toLocaleString()} patents visible
         </p>
+        <ShareButton onCopy={copyShareUrl} />
       </div>
     </div>
   );
