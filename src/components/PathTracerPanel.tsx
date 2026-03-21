@@ -285,6 +285,7 @@ function PatentSlot({
   hasSelected: boolean;
   onNavigate?: () => void;
 }) {
+  const config = useProject();
   return (
     <div>
       <div className="text-xs mb-1" style={{ color: '#8888aa' }}>{label}</div>
