@@ -51,9 +51,10 @@ export default function PathTracerPanel({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 left-4 z-30 flex items-center gap-3
+        className="fixed left-4 z-30 flex items-center gap-3
           hover:scale-[1.02] active:scale-[0.98] transition-transform"
         style={{
+          bottom: 80,
           padding: '14px 20px',
           background: 'rgba(12, 12, 28, 0.9)',
           backdropFilter: 'blur(20px)',
@@ -73,8 +74,9 @@ export default function PathTracerPanel({
 
   return (
     <div
-      className="fixed bottom-20 left-4 right-4 sm:right-auto z-30"
+      className="fixed left-4 right-4 sm:right-auto z-30"
       style={{
+        bottom: 80,
         maxWidth: 440,
         background: 'rgba(12, 12, 28, 0.95)',
         backdropFilter: 'blur(24px)',

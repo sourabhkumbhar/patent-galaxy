@@ -38,11 +38,14 @@ export default function MiniMapOverlay({ nodes, filteredIndices }: MiniMapOverla
 
   // Imperatively create and mount the minimap DOM elements
   useEffect(() => {
+    // Hide minimap on small screens — it overlaps with path tracer
+    const isMobile = window.innerWidth < 640;
+
     const container = document.createElement('div');
     container.setAttribute('role', 'img');
     container.setAttribute('aria-label', 'Mini-map showing patent distribution');
     container.style.cssText =
-      'position:fixed;bottom:64px;right:16px;z-index:30;border-radius:8px;overflow:hidden;border:1px solid rgba(100,100,180,0.2);background:rgba(10,10,20,0.8)';
+      `position:fixed;bottom:64px;right:16px;z-index:30;border-radius:8px;overflow:hidden;border:1px solid rgba(100,100,180,0.2);background:rgba(10,10,20,0.8)${isMobile ? ';display:none' : ''}`;
 
     const canvas = document.createElement('canvas');
     canvas.width = 160;

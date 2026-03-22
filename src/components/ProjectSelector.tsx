@@ -9,14 +9,15 @@ interface ProjectSelectorProps {
 export default function ProjectSelector({ projects, activeId, onSelect }: ProjectSelectorProps) {
   return (
     <div
-      className="fixed top-3.5 left-1/2 -translate-x-1/2 z-40 flex items-center"
+      className="fixed z-40 left-1/2 -translate-x-1/2 flex items-center"
       style={{
-        padding: 4,
+        top: 12,
+        padding: 3,
         background: 'rgba(12, 12, 28, 0.85)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(80, 80, 140, 0.2)',
-        borderRadius: 28,
-        gap: 4,
+        borderRadius: 24,
+        gap: 3,
       }}
     >
       {projects.map((project) => {
@@ -28,11 +29,10 @@ export default function ProjectSelector({ projects, activeId, onSelect }: Projec
             key={project.id}
             onClick={() => onSelect(project.id)}
             style={{
-              padding: '8px 24px',
-              borderRadius: 24,
-              fontSize: 14,
+              padding: '6px 20px',
+              borderRadius: 20,
+              fontSize: 13,
               fontWeight: 500,
-              letterSpacing: '0.02em',
               background: isActive ? 'rgba(68, 136, 255, 0.18)' : 'transparent',
               color: isActive ? '#c8d8ff' : 'rgba(140, 140, 170, 0.5)',
               border: isActive ? '1px solid rgba(68, 136, 255, 0.25)' : '1px solid transparent',

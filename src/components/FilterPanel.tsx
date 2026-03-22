@@ -26,7 +26,7 @@ export default function FilterPanel({
   const isFiltered = filteredCount < totalCount;
 
   return (
-    <div className="fixed left-4 z-20" style={{ top: 'calc(3.5rem + 76px)', width: 280 }}>
+    <div className="fixed left-4 right-4 sm:right-auto z-20" style={{ top: 108, maxWidth: 280 }}>
       <div
         style={{
           background: 'rgba(12, 12, 28, 0.9)',

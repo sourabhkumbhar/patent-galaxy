@@ -64,7 +64,7 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
   const showResults = isFocused && results.length > 0;
 
   return (
-    <div className="fixed top-14 left-4 z-30" style={{ width: 320 }}>
+    <div className="fixed left-4 right-4 sm:right-auto z-30" style={{ top: 52, maxWidth: 320 }}>
       {/* Search bar */}
       <div
         className="flex items-center gap-3"

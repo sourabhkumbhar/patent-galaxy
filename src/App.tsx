@@ -196,7 +196,7 @@ function AppInner({ config }: { config: ProjectConfig }) {
           <HoverCard node={hoveredNode} mousePosition={mousePos} />
 
           {!selectedNode && !hoveredNode && (
-            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none max-sm:bottom-14">
+            <div className="fixed left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none hidden sm:block" style={{ bottom: 80 }}>
               <p className="text-xs px-4 py-2 rounded-full text-center" style={{
                 color: 'var(--text-muted)',
                 background: 'rgba(10, 10, 20, 0.6)',
@@ -234,7 +234,7 @@ function AppInner({ config }: { config: ProjectConfig }) {
           />
 
           {/* ── Bottom-right action buttons ── */}
-          <div className="fixed right-4 z-30 flex items-center gap-2" style={{ bottom: 72 }}>
+          <div className="fixed right-4 z-30 flex items-center gap-2 max-sm:gap-1.5" style={{ bottom: 72 }}>
             {/* Share */}
             <button
               onClick={copyShareUrl}
