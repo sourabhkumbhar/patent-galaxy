@@ -8,7 +8,7 @@ import FilterPanel from './components/FilterPanel';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
 import PathTracerPanel from './components/PathTracerPanel';
-import ShareButton from './components/ShareButton';
+// ShareButton functionality is now inlined in the right toolbar
 import ProjectSelector from './components/ProjectSelector';
 import DemoMode from './components/DemoMode';
 import { ProjectProvider } from './config/ProjectContext';
@@ -233,43 +233,67 @@ function AppInner({ config }: { config: ProjectConfig }) {
             yearCounts={yearCounts}
           />
 
-          <button
-            onClick={() => window.dispatchEvent(new Event('galaxy:reset'))}
-            title="Reset view (R)"
-            className="fixed z-30 glass-panel hover-glow btn-interactive"
-            style={{
-              bottom: 240,
-              right: 16,
-              width: 40,
-              height: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 8,
-              padding: 0,
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-secondary)' }}>
-              <circle cx="12" cy="12" r="3" />
-              <line x1="12" y1="2" x2="12" y2="6" />
-              <line x1="12" y1="18" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="6" y2="12" />
-              <line x1="18" y1="12" x2="22" y2="12" />
-            </svg>
-          </button>
+          {/* ── Bottom-right action buttons ── */}
+          <div className="fixed right-4 z-30 flex items-center gap-2" style={{ bottom: 72 }}>
+            {/* Share */}
+            <button
+              onClick={copyShareUrl}
+              title="Share this view"
+              className="flex items-center gap-2 rounded-full px-4 py-2.5
+                transition-all duration-200 hover:scale-[1.03] active:scale-95"
+              style={{
+                background: 'rgba(8, 8, 24, 0.85)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(100, 100, 180, 0.2)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ color: 'var(--text-secondary)' }}>
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              <span className="text-xs font-medium hidden sm:inline" style={{ color: 'var(--text-secondary)' }}>Share</span>
+            </button>
 
-          <div className="fixed top-4 right-4 z-20 anim-fade-in hidden sm:block">
-            <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">
-              <div>
-                <h1 className="text-base font-light tracking-wider" style={{ color: 'var(--text-primary)' }}>
-                  {config.name}
-                </h1>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                  {filteredIndices.length.toLocaleString()} {config.nodeLabelPlural} visible
-                </p>
-              </div>
-              <div style={{ width: 1, height: 28, background: 'var(--border-color)' }} />
-              <ShareButton onCopy={copyShareUrl} />
+            {/* Recenter / Reset */}
+            <button
+              onClick={() => window.dispatchEvent(new Event('galaxy:reset'))}
+              title="Reset view (R)"
+              className="flex items-center gap-2 rounded-full px-4 py-2.5
+                transition-all duration-200 hover:scale-[1.03] active:scale-95"
+              style={{
+                background: 'rgba(68, 136, 255, 0.12)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(68, 136, 255, 0.25)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3), 0 0 12px rgba(68, 136, 255, 0.08)',
+                color: 'var(--accent)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <span className="text-xs font-medium">Recenter</span>
+            </button>
+          </div>
+
+          {/* ── Top-right stats badge ── */}
+          <div className="fixed top-16 right-4 z-20 hidden sm:block">
+            <div
+              className="rounded-2xl px-4 py-3 text-right"
+              style={{
+                background: 'rgba(8, 8, 24, 0.75)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(100, 100, 180, 0.12)',
+                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              <h1 className="text-sm font-medium tracking-wide" style={{ color: 'var(--text-primary)' }}>
+                {config.name}
+              </h1>
+              <p className="text-xs mt-0.5 tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                {filteredIndices.length.toLocaleString()} {config.nodeLabelPlural} visible
+              </p>
             </div>
           </div>
         </>
@@ -292,17 +316,20 @@ function AppInner({ config }: { config: ProjectConfig }) {
 
 export default function App() {
   const [activeProject, setActiveProject] = useState<ProjectConfig>(patentConfig);
+  const isDemo = new URLSearchParams(window.location.search).get('demo') === 'true';
 
   return (
     <ProjectProvider config={activeProject}>
-      <ProjectSelector
-        projects={PROJECTS}
-        activeId={activeProject.id}
-        onSelect={(id) => {
-          const project = PROJECTS.find(p => p.id === id);
-          if (project) setActiveProject(project);
-        }}
-      />
+      {!isDemo && (
+        <ProjectSelector
+          projects={PROJECTS}
+          activeId={activeProject.id}
+          onSelect={(id) => {
+            const project = PROJECTS.find(p => p.id === id);
+            if (project) setActiveProject(project);
+          }}
+        />
+      )}
       <AppInner config={activeProject} />
     </ProjectProvider>
   );

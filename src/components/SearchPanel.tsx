@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { DataNode } from '../types/patent';
 import { useProject } from '../config/ProjectContext';
 
-const MAX_RESULTS = 12;
+const MAX_RESULTS = 10;
 
 interface SearchPanelProps {
   nodes: DataNode[];
@@ -61,105 +61,110 @@ export default function SearchPanel({ nodes, onSelect, onSearch }: SearchPanelPr
     [onSelect]
   );
 
+  const showResults = isFocused && results.length > 0;
+
   return (
-    <div className="fixed top-4 left-4 right-4 sm:right-auto z-40 sm:w-80 anim-slide-left">
-      <div className="glass-panel glass-panel-inner-glow overflow-hidden hover-glow">
-        {/* Search input */}
-        <div className="flex items-center gap-2.5 px-4 py-3">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="shrink-0"
-            style={{ color: isFocused ? 'var(--accent)' : 'var(--text-secondary)', transition: 'color 0.2s' }}
+    <div className="fixed top-14 left-4 z-30" style={{ width: 320 }}>
+      {/* Search bar */}
+      <div
+        className="flex items-center gap-3"
+        style={{
+          padding: '14px 20px',
+          background: 'rgba(12, 12, 28, 0.9)',
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${isFocused ? 'rgba(68, 136, 255, 0.35)' : 'rgba(80, 80, 140, 0.18)'}`,
+          borderRadius: showResults ? '16px 16px 0 0' : 16,
+          transition: 'border-color 0.2s',
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+          className="shrink-0" style={{ color: isFocused ? '#6699ff' : '#55557a' }}>
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input
+          type="text"
+          value={query}
+          onChange={handleChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+          placeholder={config.searchPlaceholder}
+          className="flex-1 bg-transparent outline-none min-w-0"
+          style={{ color: '#d0d0e8', fontSize: 16 }}
+        />
+        {query && (
+          <button
+            onClick={() => { setQuery(''); onSearch(''); }}
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
           >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-          <input
-            type="text"
-            value={query}
-            onChange={handleChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-            placeholder={config.searchPlaceholder}
-            aria-label={`Search ${config.nodeLabelPlural}`}
-            aria-autocomplete="list"
-            aria-expanded={isFocused && results.length > 0}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--text-muted)]"
-            style={{ color: 'var(--text-primary)' }}
-          />
-          {query && (
-            <button
-              onClick={() => { setQuery(''); onSearch(''); }}
-              className="text-xs px-2 py-0.5 rounded-md btn-interactive"
-              style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-
-        {/* Results dropdown */}
-        {isFocused && results.length > 0 && (
-          <div
-            className="max-h-72 overflow-y-auto anim-expand-down"
-            style={{ borderTop: '1px solid var(--border-color)' }}
-          >
-            {results.map(({ index, node }, i) => (
-              <button
-                key={index}
-                onMouseDown={() => handleSelect(index)}
-                className="w-full text-left px-4 py-2.5 list-item-hover"
-                style={{ animationDelay: `${i * 20}ms` }}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: node.color, boxShadow: `0 0 6px ${node.color}66` }}
-                  />
-                  <span className="text-xs font-mono truncate" style={{ color: node.color }}>
-                    {config.formatNodeId(node.id)}
-                  </span>
-                </div>
-                <div className="text-sm truncate mt-0.5" style={{ color: 'var(--text-primary)' }}>
-                  {node.title}
-                </div>
-                <div className="text-xs truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                  {node.creator}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {isFocused && results.length > 0 && totalMatches > MAX_RESULTS && (
-          <div
-            className="px-4 py-2 text-xs"
-            style={{
-              color: 'var(--text-secondary)',
-              borderTop: '1px solid var(--border-color)',
-            }}
-          >
-            Showing {MAX_RESULTS} of {totalMatches.toLocaleString()} matches
-          </div>
-        )}
-
-        {isFocused && query.length >= 2 && results.length === 0 && (
-          <div
-            className="px-4 py-3 text-xs anim-fade-in"
-            style={{
-              color: 'var(--text-secondary)',
-              borderTop: '1px solid var(--border-color)',
-            }}
-          >
-            No {config.nodeLabelPlural} found matching "{query}"
-          </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         )}
       </div>
+
+      {/* Results */}
+      {showResults && (
+        <div
+          className="overflow-y-auto"
+          style={{
+            maxHeight: 400,
+            background: 'rgba(12, 12, 28, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(80, 80, 140, 0.18)',
+            borderTop: '1px solid rgba(80, 80, 140, 0.1)',
+            borderRadius: '0 0 16px 16px',
+            paddingTop: 4,
+            paddingBottom: 8,
+          }}
+        >
+          {results.map(({ index, node }) => (
+            <button
+              key={index}
+              onMouseDown={() => handleSelect(index)}
+              className="w-full text-left hover:bg-white/[0.04] transition-colors"
+              style={{ padding: '12px 20px' }}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-3 rounded-full shrink-0" style={{ background: node.color, boxShadow: `0 0 6px ${node.color}44` }} />
+                <span className="text-sm font-mono truncate" style={{ color: node.color }}>
+                  {config.formatNodeId(node.id)}
+                </span>
+              </div>
+              <div className="text-sm truncate mt-1" style={{ color: '#b0b0c8', paddingLeft: 22 }}>
+                {node.title}
+              </div>
+              <div className="text-xs truncate mt-0.5" style={{ color: '#666680', paddingLeft: 22 }}>
+                {node.creator}
+              </div>
+            </button>
+          ))}
+          {totalMatches > MAX_RESULTS && (
+            <div className="text-xs text-center" style={{ color: '#55557a', padding: '10px 20px' }}>
+              {totalMatches.toLocaleString()} total matches
+            </div>
+          )}
+        </div>
+      )}
+
+      {isFocused && query.length >= 2 && results.length === 0 && (
+        <div
+          className="text-sm text-center"
+          style={{
+            padding: '16px 20px',
+            background: 'rgba(12, 12, 28, 0.95)',
+            border: '1px solid rgba(80, 80, 140, 0.18)',
+            borderTop: 'none',
+            borderRadius: '0 0 16px 16px',
+            color: '#55557a',
+          }}
+        >
+          No results found
+        </div>
+      )}
     </div>
   );
 }

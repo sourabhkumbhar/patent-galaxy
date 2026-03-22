@@ -101,6 +101,20 @@ html, body, #root {
 .anim-fade-in      { animation: fade-in        0.2s  ease-out both; }
 .anim-expand-down  { animation: expand-down    0.3s  cubic-bezier(0.16, 1, 0.3, 1) both; overflow: hidden; }
 
+/* Named keyframes used by inline styles */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Z-index utility */
+.z-35 { z-index: 35; }
+
 /* ── Hover Microinteractions ── */
 .hover-lift {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
