@@ -234,46 +234,49 @@ function AppInner({ config }: { config: ProjectConfig }) {
           />
 
           {/* ── Bottom-right action buttons ── */}
-          <div className="fixed right-4 z-30 flex items-center gap-2 max-sm:gap-1.5" style={{ bottom: 72 }}>
+          <div className="fixed right-4 z-30 flex items-center gap-2" style={{ bottom: 72 }}>
             {/* Share */}
             <button
               onClick={copyShareUrl}
               title="Share this view"
-              className="flex items-center gap-2 rounded-full px-4 py-2.5
+              className="flex items-center gap-2 rounded-full
                 transition-all duration-200 hover:scale-[1.03] active:scale-95"
               style={{
-                background: 'rgba(8, 8, 24, 0.85)',
+                padding: '10px 18px',
+                background: 'rgba(12, 12, 28, 0.9)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(100, 100, 180, 0.2)',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+                border: '1px solid rgba(80, 80, 140, 0.2)',
+                fontSize: 13,
+                color: 'var(--text-secondary)',
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ color: 'var(--text-secondary)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
-              <span className="text-xs font-medium hidden sm:inline" style={{ color: 'var(--text-secondary)' }}>Share</span>
+              <span className="hidden sm:inline">Share</span>
             </button>
 
             {/* Recenter / Reset */}
             <button
               onClick={() => window.dispatchEvent(new Event('galaxy:reset'))}
               title="Reset view (R)"
-              className="flex items-center gap-2 rounded-full px-4 py-2.5
+              className="flex items-center gap-2 rounded-full
                 transition-all duration-200 hover:scale-[1.03] active:scale-95"
               style={{
+                padding: '10px 18px',
                 background: 'rgba(68, 136, 255, 0.12)',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(68, 136, 255, 0.25)',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3), 0 0 12px rgba(68, 136, 255, 0.08)',
-                color: 'var(--accent)',
+                fontSize: 13,
+                color: '#6699ff',
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />
               </svg>
-              <span className="text-xs font-medium">Recenter</span>
+              <span>Recenter</span>
             </button>
           </div>
 
