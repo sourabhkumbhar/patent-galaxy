@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, createContext } from 'react';
 import Galaxy from './components/Galaxy';
 import HoverCard from './components/HoverCard';
 import InfoPanel from './components/InfoPanel';
@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import PathTracerPanel from './components/PathTracerPanel';
 import ShareButton from './components/ShareButton';
 import ProjectSelector from './components/ProjectSelector';
+import DemoMode from './components/DemoMode';
 import { ProjectProvider } from './config/ProjectContext';
 import { patentConfig } from './config/patents';
 import { paperConfig } from './config/papers';
@@ -20,7 +21,13 @@ import type { ProjectConfig } from './config/types';
 
 const PROJECTS: ProjectConfig[] = [patentConfig, paperConfig];
 
+// Cinematic mode context — hides all UI chrome for video recording
+export const CinematicContext = createContext(false);
+
 function AppInner({ config }: { config: ProjectConfig }) {
+  const [cinematic, setCinematic] = useState(() =>
+    new URLSearchParams(window.location.search).get('demo') === 'true'
+  );
   const {
     data,
     filters,
@@ -47,6 +54,40 @@ function AppInner({ config }: { config: ProjectConfig }) {
     onSelect: setSelectedIndex,
     onHover: setHoveredIndex,
   });
+
+  // Full reset: clear selection immediately, fly camera back, then restore filters
+  const handleReset = useCallback(() => {
+    // Immediately clear interactive state so camera can fly freely
+    setSelectedIndex(null);
+    setHoveredIndex(null);
+    setCitationPath(null);
+    setSearchQuery('');
+
+    // Start camera animation
+    window.dispatchEvent(new Event('galaxy:recenter'));
+
+    // Restore filters midway through the camera animation
+    setTimeout(() => {
+      setCategories(config.allCategoryIds);
+      setYearRange([yearBounds.min, yearBounds.max]);
+      setMinCitations(0);
+    }, 800);
+  }, [config.allCategoryIds, yearBounds, setSelectedIndex, setHoveredIndex, setSearchQuery, setCategories, setYearRange, setMinCitations]);
+
+  useEffect(() => {
+    const onReset = () => handleReset();
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'r' || e.key === 'R') handleReset();
+    };
+    window.addEventListener('galaxy:reset', onReset);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('galaxy:reset', onReset);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [handleReset]);
 
   const { copyShareUrl } = useShareState({
     yearRange: filters.yearRange,
@@ -134,109 +175,117 @@ function AppInner({ config }: { config: ProjectConfig }) {
         />
       </ErrorBoundary>
 
-      {/* Search Panel (top-left) */}
-      <SearchPanel
-        nodes={data.nodes}
-        onSelect={handleNavigate}
-        onSearch={setSearchQuery}
-      />
+      {/* ── UI Chrome — hidden in cinematic/demo mode ── */}
+      {!cinematic && (
+        <>
+          <SearchPanel
+            nodes={data.nodes}
+            onSelect={handleNavigate}
+            onSearch={setSearchQuery}
+          />
 
-      {/* Filter Panel (left sidebar) */}
-      <FilterPanel
-        categories={filters.categories}
-        onToggleCategory={handleToggleCategory}
-        minCitations={filters.minCitations}
-        onMinCitationsChange={setMinCitations}
-        totalCount={data.nodes.length}
-        filteredCount={filteredIndices.length}
-      />
+          <FilterPanel
+            categories={filters.categories}
+            onToggleCategory={handleToggleCategory}
+            minCitations={filters.minCitations}
+            onMinCitationsChange={setMinCitations}
+            totalCount={data.nodes.length}
+            filteredCount={filteredIndices.length}
+          />
 
-      {/* Hover Card (follows cursor) */}
-      <HoverCard node={hoveredNode} mousePosition={mousePos} />
+          <HoverCard node={hoveredNode} mousePosition={mousePos} />
 
-      {/* Empty state hint */}
-      {!selectedNode && !hoveredNode && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none max-sm:bottom-14">
-          <p className="text-xs px-4 py-2 rounded-full text-center" style={{
-            color: 'var(--text-muted)',
-            background: 'rgba(10, 10, 20, 0.6)',
-            border: '1px solid var(--border-color)',
-          }}>
-            <span className="sm:hidden">Tap a star to explore &middot; Pinch to zoom</span>
-            <span className="hidden sm:inline">Click a star to explore &middot; Tab to cycle &middot; Arrow keys to navigate</span>
-          </p>
-        </div>
+          {!selectedNode && !hoveredNode && (
+            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-10 anim-fade-in pointer-events-none max-sm:bottom-14">
+              <p className="text-xs px-4 py-2 rounded-full text-center" style={{
+                color: 'var(--text-muted)',
+                background: 'rgba(10, 10, 20, 0.6)',
+                border: '1px solid var(--border-color)',
+              }}>
+                <span className="sm:hidden">Tap a star to explore &middot; Pinch to zoom</span>
+                <span className="hidden sm:inline">Click a star to explore &middot; Tab to cycle &middot; Arrow keys to navigate</span>
+              </p>
+            </div>
+          )}
+
+          <InfoPanel
+            node={selectedNode}
+            allNodes={data.nodes}
+            edges={data.edges}
+            nodeIndex={filters.selectedIndex}
+            onClose={() => setSelectedIndex(null)}
+            onNavigate={handleNavigate}
+          />
+
+          <PathTracerPanel
+            nodes={data.nodes}
+            edges={data.edges}
+            selectedIndex={filters.selectedIndex}
+            onPathChange={setCitationPath}
+            onNavigate={handleNavigate}
+          />
+
+          <TimeSlider
+            yearRange={filters.yearRange}
+            minYear={yearBounds.min}
+            maxYear={yearBounds.max}
+            onChange={setYearRange}
+            yearCounts={yearCounts}
+          />
+
+          <button
+            onClick={() => window.dispatchEvent(new Event('galaxy:reset'))}
+            title="Reset view (R)"
+            className="fixed z-30 glass-panel hover-glow btn-interactive"
+            style={{
+              bottom: 240,
+              right: 16,
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 8,
+              padding: 0,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-secondary)' }}>
+              <circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="2" x2="12" y2="6" />
+              <line x1="12" y1="18" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="6" y2="12" />
+              <line x1="18" y1="12" x2="22" y2="12" />
+            </svg>
+          </button>
+
+          <div className="fixed top-4 right-4 z-20 anim-fade-in hidden sm:block">
+            <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">
+              <div>
+                <h1 className="text-base font-light tracking-wider" style={{ color: 'var(--text-primary)' }}>
+                  {config.name}
+                </h1>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  {filteredIndices.length.toLocaleString()} {config.nodeLabelPlural} visible
+                </p>
+              </div>
+              <div style={{ width: 1, height: 28, background: 'var(--border-color)' }} />
+              <ShareButton onCopy={copyShareUrl} />
+            </div>
+          </div>
+        </>
       )}
 
-      {/* Info Panel (right sidebar, on click) */}
-      <InfoPanel
-        node={selectedNode}
-        allNodes={data.nodes}
-        edges={data.edges}
-        nodeIndex={filters.selectedIndex}
-        onClose={() => setSelectedIndex(null)}
-        onNavigate={handleNavigate}
+      {/* Automated demo mode for screen recording */}
+      <DemoMode
+        data={data}
+        filteredIndices={filteredIndices}
+        setSelectedIndex={setSelectedIndex}
+        setHoveredIndex={setHoveredIndex}
+        setCategories={setCategories}
+        setCitationPath={setCitationPath}
+        allCategoryIds={config.allCategoryIds}
+        setCinematic={setCinematic}
       />
-
-      {/* Citation Path Tracer */}
-      <PathTracerPanel
-        nodes={data.nodes}
-        edges={data.edges}
-        selectedIndex={filters.selectedIndex}
-        onPathChange={setCitationPath}
-        onNavigate={handleNavigate}
-      />
-
-      {/* Time Slider (bottom) */}
-      <TimeSlider
-        yearRange={filters.yearRange}
-        minYear={yearBounds.min}
-        maxYear={yearBounds.max}
-        onChange={setYearRange}
-        yearCounts={yearCounts}
-      />
-
-      {/* Recenter camera button */}
-      <button
-        onClick={() => window.dispatchEvent(new Event('galaxy:recenter'))}
-        title="Recenter camera"
-        className="fixed z-30 glass-panel hover-glow btn-interactive"
-        style={{
-          bottom: 240,
-          right: 16,
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 8,
-          padding: 0,
-        }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-secondary)' }}>
-          <circle cx="12" cy="12" r="3" />
-          <line x1="12" y1="2" x2="12" y2="6" />
-          <line x1="12" y1="18" x2="12" y2="22" />
-          <line x1="2" y1="12" x2="6" y2="12" />
-          <line x1="18" y1="12" x2="22" y2="12" />
-        </svg>
-      </button>
-
-      {/* Legend / Title — hidden on small screens to avoid overlap with search */}
-      <div className="fixed top-4 right-4 z-20 anim-fade-in hidden sm:block">
-        <div className="glass-panel px-4 py-3 text-right flex items-center gap-4">
-          <div>
-            <h1 className="text-base font-light tracking-wider" style={{ color: 'var(--text-primary)' }}>
-              {config.name}
-            </h1>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-              {filteredIndices.length.toLocaleString()} {config.nodeLabelPlural} visible
-            </p>
-          </div>
-          <div style={{ width: 1, height: 28, background: 'var(--border-color)' }} />
-          <ShareButton onCopy={copyShareUrl} />
-        </div>
-      </div>
     </div>
   );
 }

@@ -102,8 +102,8 @@ export default function CameraController({
         x: 0,
         y: 120,
         z: 320,
-        duration: 1.5,
-        ease: 'power2.inOut',
+        duration: 2.5,
+        ease: 'power3.inOut',
         onUpdate: () => {
           camera.position.set(proxy.x, proxy.y, proxy.z);
           camera.lookAt(0, 0, 0);
@@ -121,8 +121,103 @@ export default function CameraController({
       });
     };
 
+    // Fly camera to arbitrary position (used by demo mode — no node selection)
+    const handleFlyTo = ((e: CustomEvent<{ x: number; y: number; z: number; duration?: number }>) => {
+      const { x, y, z, duration = 2.5 } = e.detail;
+      isAutoOrbit.current = false;
+      isAnimating.current = true;
+
+      if (controlsRef.current) controlsRef.current.enabled = false;
+
+      const proxy = {
+        px: camera.position.x, py: camera.position.y, pz: camera.position.z,
+        tx: controlsRef.current?.target.x ?? 0,
+        ty: controlsRef.current?.target.y ?? 0,
+        tz: controlsRef.current?.target.z ?? 0,
+      };
+
+      gsap.to(proxy, {
+        px: x, py: y + 15, pz: z + 40, // Offset: slightly above and behind the target
+        tx: x, ty: y, tz: z,
+        duration,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          camera.position.set(proxy.px, proxy.py, proxy.pz);
+          if (controlsRef.current) {
+            controlsRef.current.target.set(proxy.tx, proxy.ty, proxy.tz);
+            controlsRef.current.update();
+          } else {
+            camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
+          }
+        },
+        onComplete: () => {
+          isAnimating.current = false;
+          if (controlsRef.current) controlsRef.current.enabled = true;
+          resetIdleTimer();
+        },
+      });
+    }) as EventListener;
+
+    // Orbit camera around a target point — simulates human dragging to look around
+    // detail: { x, y, z (look-at center), radius, duration, arc (radians to sweep), startAngle? }
+    const handleOrbit = ((e: CustomEvent<{
+      x: number; y: number; z: number;
+      radius?: number; height?: number;
+      duration?: number; arc?: number;
+    }>) => {
+      const {
+        x, y, z,
+        radius = 60,
+        height = 20,
+        duration = 4,
+        arc = Math.PI * 0.6, // ~108 degrees sweep by default
+      } = e.detail;
+
+      isAutoOrbit.current = false;
+      isAnimating.current = true;
+      if (controlsRef.current) controlsRef.current.enabled = false;
+
+      // Start angle: current camera direction relative to target
+      const dx = camera.position.x - x;
+      const dz = camera.position.z - z;
+      const startAngle = Math.atan2(dz, dx);
+
+      const proxy = { t: 0 };
+      gsap.to(proxy, {
+        t: 1,
+        duration,
+        ease: 'none', // Linear orbit — feels like steady hand drag
+        onUpdate: () => {
+          const angle = startAngle + proxy.t * arc;
+          const px = x + Math.cos(angle) * radius;
+          const pz = z + Math.sin(angle) * radius;
+          // Slight height variation — human hand isn't perfectly level
+          const py = y + height + Math.sin(proxy.t * Math.PI) * 8;
+
+          camera.position.set(px, py, pz);
+          if (controlsRef.current) {
+            controlsRef.current.target.set(x, y, z);
+            controlsRef.current.update();
+          } else {
+            camera.lookAt(x, y, z);
+          }
+        },
+        onComplete: () => {
+          isAnimating.current = false;
+          if (controlsRef.current) controlsRef.current.enabled = true;
+          resetIdleTimer();
+        },
+      });
+    }) as EventListener;
+
     window.addEventListener('galaxy:recenter', handleRecenter);
-    return () => window.removeEventListener('galaxy:recenter', handleRecenter);
+    window.addEventListener('galaxy:flyto', handleFlyTo);
+    window.addEventListener('galaxy:orbit', handleOrbit);
+    return () => {
+      window.removeEventListener('galaxy:recenter', handleRecenter);
+      window.removeEventListener('galaxy:flyto', handleFlyTo);
+      window.removeEventListener('galaxy:orbit', handleOrbit);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -227,8 +322,8 @@ export default function CameraController({
     // Fly-to animation
     if (!isAnimating.current) return;
 
-    progress.current = Math.min(1, progress.current + delta * 1.8);
-    const t = easeInOutCubic(progress.current);
+    progress.current = Math.min(1, progress.current + delta * 0.8);
+    const t = easeInOutQuart(progress.current);
 
     camera.position.lerpVectors(
       startPosition.current,
@@ -261,6 +356,6 @@ export default function CameraController({
   return null;
 }
 
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function easeInOutQuart(t: number): number {
+  return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
 }
