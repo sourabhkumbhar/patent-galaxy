@@ -242,7 +242,7 @@ def main():
     output_dir = Path(args.output_dir) if args.output_dir else base / "processed"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Patent Galaxy Data Pipeline - Parse")
+    print(f"NodeVerse Data Pipeline - Parse")
     print(f"Target year: {args.year}")
     print(f"Raw directory: {raw_dir}")
     print(f"Output directory: {output_dir}")

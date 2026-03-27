@@ -10,7 +10,7 @@ interface UseKeyboardNavigationParams {
 }
 
 /**
- * Keyboard navigation for the patent galaxy.
+ * Keyboard navigation for the NodeVerse.
  * - Arrow keys: jump to nearest patent in that direction
  * - Escape: deselect current patent
  * - Tab: cycle through filtered patents sequentially

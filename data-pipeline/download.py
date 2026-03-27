@@ -193,7 +193,7 @@ def main():
 
     files_to_download = args.files or list(DOWNLOAD_URLS.keys())
 
-    print(f"Patent Galaxy Data Pipeline - Download")
+    print(f"NodeVerse Data Pipeline - Download")
     print(f"Target year: {args.year}")
     print(f"Output directory: {raw_dir}")
     print(f"Files to download: {len(files_to_download)}")

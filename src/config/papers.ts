@@ -22,7 +22,7 @@ function getPaperUrl(id: string): string {
 
 export const paperConfig: ProjectConfig = {
   id: 'papers',
-  name: 'Paper Synapse',
+  name: 'NodeVerse — Papers',
   tagline: 'The neural network of human knowledge',
   description: 'Explore 50,000 research papers as neurons in a 3D brain. Each neuron is a paper, colored by research field, connected by citation synapses.',
 

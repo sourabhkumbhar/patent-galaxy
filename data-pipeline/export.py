@@ -2,7 +2,7 @@
 
 Reads the clustered patent data, edge list, and cluster summary, then
 writes compact JSON files to public/data/ for consumption by the
-Patent Galaxy web application.
+NodeVerse web application.
 """
 
 import argparse
@@ -235,7 +235,7 @@ def main():
 
     compact = not args.pretty
 
-    print("Patent Galaxy Data Pipeline - Export")
+    print("NodeVerse Data Pipeline - Export")
     print(f"Input directory: {input_dir}")
     print(f"Output directory: {output_dir}")
     print(f"Format: {'compact' if compact else 'pretty-printed'}")

@@ -28,7 +28,7 @@ function getPatentUrl(id: string): string {
 
 export const patentConfig: ProjectConfig = {
   id: 'patents',
-  name: 'Patent Galaxy',
+  name: 'NodeVerse — Patents',
   tagline: 'Explore the universe of innovation',
   description: 'Navigate 100,000 real USPTO patents as stars in a 3D galaxy. Each star is a patent, colored by technology domain, connected by citation links.',
 

@@ -7,7 +7,7 @@ interface LoadingScreenProps {
  * Full-screen loading screen shown while data is being loaded.
  * Features a pulsing galaxy animation and optional download progress bar.
  */
-export default function LoadingScreen({ progress, projectName = 'Patent Galaxy' }: LoadingScreenProps) {
+export default function LoadingScreen({ progress, projectName = 'NodeVerse' }: LoadingScreenProps) {
   const noun = projectName.toLowerCase().includes('paper') ? 'papers' : 'patents';
 
   const statusText =

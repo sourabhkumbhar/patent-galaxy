@@ -245,7 +245,7 @@ def main():
     output_dir = Path(args.output_dir) if args.output_dir else base / "processed"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print("Patent Galaxy Data Pipeline - Cluster")
+    print("NodeVerse Data Pipeline - Cluster")
     print(f"Input directory: {input_dir}")
     print(f"Output directory: {output_dir}")
     print()

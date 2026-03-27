@@ -19,7 +19,7 @@ import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
 import { useShareState } from './hooks/useShareState';
 import type { ProjectConfig } from './config/types';
 
-const PROJECTS: ProjectConfig[] = [patentConfig, paperConfig];
+const PROJECTS: ProjectConfig[] = [paperConfig, patentConfig];
 
 // Cinematic mode context — hides all UI chrome for video recording
 export const CinematicContext = createContext(false);
@@ -318,7 +318,7 @@ function AppInner({ config }: { config: ProjectConfig }) {
 }
 
 export default function App() {
-  const [activeProject, setActiveProject] = useState<ProjectConfig>(patentConfig);
+  const [activeProject, setActiveProject] = useState<ProjectConfig>(paperConfig);
   const isDemo = new URLSearchParams(window.location.search).get('demo') === 'true';
 
   return (

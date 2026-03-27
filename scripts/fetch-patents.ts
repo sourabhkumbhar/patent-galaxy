@@ -1,5 +1,5 @@
 /**
- * Process PatentsView bulk TSV data into the Patent Galaxy JSON format.
+ * Process PatentsView bulk TSV data into the NodeVerse JSON format.
  *
  * Prerequisites — download these files into data-pipeline/raw/:
  *   1. g_patent.tsv.zip          (~230 MB)  https://s3.amazonaws.com/data.patentsview.org/download/g_patent.tsv.zip
@@ -208,7 +208,7 @@ async function fetchAnnualizedData(
 // ── Main Pipeline ──────────────────────────────────────────────────────
 
 async function main() {
-  console.log('=== Patent Galaxy Data Pipeline (Bulk TSV) ===\n');
+  console.log('=== NodeVerse Data Pipeline (Bulk TSV) ===\n');
 
   // ── Step 1: Parse g_patent.tsv — collect recent utility patents ──
 
