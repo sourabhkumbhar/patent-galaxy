@@ -144,6 +144,15 @@ export default function CameraController({
       const { x, y, z, duration = 2.5 } = e.detail;
       if (controlsRef.current) controlsRef.current.enabled = false;
 
+      // Position camera on the OUTER side of the node (away from galaxy center)
+      // so the camera always faces inward toward the dense core
+      const dist = Math.sqrt(x * x + z * z) || 1;
+      const dirX = x / dist;
+      const dirZ = z / dist;
+      const camX = x + dirX * 40;
+      const camY = y + 15;
+      const camZ = z + dirZ * 40;
+
       const proxy = {
         px: camera.position.x, py: camera.position.y, pz: camera.position.z,
         tx: controlsRef.current?.target.x ?? 0,
@@ -153,7 +162,7 @@ export default function CameraController({
 
       gsapActive.current = true;
       activeTween.current = gsap.to(proxy, {
-        px: x, py: y + 15, pz: z + 40,
+        px: camX, py: camY, pz: camZ,
         tx: x, ty: y, tz: z,
         duration,
         ease: 'power2.inOut',
@@ -311,11 +320,14 @@ export default function CameraController({
     resetIdleTimer();
 
     const nodePos = new THREE.Vector3(node.x, node.y, node.z);
-    const camToNode = new THREE.Vector3()
-      .subVectors(nodePos, camera.position)
-      .normalize();
-    const offset = camToNode.clone().multiplyScalar(-40);
-    offset.y += 15;
+    // Place camera on outer side of node (away from galaxy center)
+    // so we always look inward toward the dense core
+    const dist = Math.sqrt(node.x * node.x + node.z * node.z) || 1;
+    const offset = new THREE.Vector3(
+      (node.x / dist) * 40,
+      15,
+      (node.z / dist) * 40,
+    );
 
     startPosition.current.copy(camera.position);
 

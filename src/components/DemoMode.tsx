@@ -110,203 +110,86 @@ export default function DemoMode(props: DemoModeProps) {
 
     let t = 0;
 
-    // ── ACT 1: ARRIVAL + LOOK AROUND ─────────────────────────
-    // Fly-in plays (3.5s). Then orbit the whole galaxy —
-    // like a human first seeing it and dragging to look around.
-    t += 4000;
-
-    // Orbit around the galaxy center — the "whoa" moment
+    // ── BEAT 1: GRAND REVEAL (0–4s) ────────────────────────
+    // Fly-in plays naturally. Quick orbit to show the whole galaxy.
+    t += 3500;
     at(t, () => orbitAround(0, 0, 0, {
-      radius: 300, height: 100, duration: 6, arc: Math.PI * 0.7,
+      radius: 300, height: 100, duration: 4, arc: Math.PI * 0.5,
     }));
-    t += 5500; // Overlap: start flyTo while orbit is still easing out
-
-    // ── ACT 2: NOTICE THE HERO ───────────────────────────────
-    at(t, () => flyTo(n(heroIdx).x, n(heroIdx).y, n(heroIdx).z, 2.5));
-    t += 2800;
-
-    // Orbit the hero, notice connections
-    at(t, () => orbitAround(n(heroIdx).x, n(heroIdx).y, n(heroIdx).z, {
-      radius: 50, height: 15, duration: 4, arc: Math.PI * 0.8,
-    }));
-    const heroConns = getConnected(heroIdx).slice(0, 4);
-    at(t + 500, () => setHoveredIndex(heroIdx));
-    at(t + 1500, () => setHoveredIndex(heroConns[0]));
-    at(t + 2500, () => setHoveredIndex(heroConns[1] ?? heroConns[0]));
-    at(t + 3500, () => setHoveredIndex(heroConns[2] ?? null));
-    t += 3800; // Overlap slightly with next action
-    at(t, () => setHoveredIndex(null));
-    t += 200;
-
-    // ── ACT 2b: FOLLOW THE LINKS ────────────────────────────
-    // "Oh, what's that connected to?" — follow a connection chain
-    // like a human clicking through Wikipedia links
-    {
-      let current = heroIdx;
-      const visited = new Set([heroIdx]);
-      const hops = 3; // Follow 3 links deep
-
-      for (let hop = 0; hop < hops; hop++) {
-        const conns = getConnected(current).filter((c) => !visited.has(c));
-        if (conns.length === 0) break;
-
-        // Pick a connected node in a DIFFERENT category if possible (more interesting)
-        const currentCat = n(current).category;
-        const next = conns.find((c) => n(c).category !== currentCat) ?? conns[0];
-        visited.add(next);
-
-        // Highlight the link, then follow it
-        at(t, () => setHoveredIndex(next)); // "Notice" the connection
-        t += 1200;
-
-        at(t, () => {
-          setHoveredIndex(null);
-          flyTo(n(next).x, n(next).y, n(next).z, 2);
-        });
-        t += 2500;
-
-        // Brief orbit at the new node — look around
-        at(t, () => orbitAround(n(next).x, n(next).y, n(next).z, {
-          radius: 35, height: 10, duration: 2, arc: Math.PI * 0.4,
-        }));
-
-        // Flash its connections while orbiting
-        const nextConns = getConnected(next).slice(0, 2);
-        at(t + 300, () => setHoveredIndex(next));
-        if (nextConns[0] != null) at(t + 1000, () => setHoveredIndex(nextConns[0]));
-        t += 2200;
-        at(t, () => setHoveredIndex(null));
-        t += 300;
-
-        current = next;
-      }
-    }
-
-    // ── ACT 3: GRAND TOUR — every cluster ────────────────────
-    // Float between clusters, orbit each one, follow a link from each
-    for (let i = 1; i < topByCategory.length; i++) {
-      const idx = topByCategory[i];
-      const node = n(idx);
-
-      // Drift to this cluster
-      at(t, () => flyTo(node.x, node.y, node.z, 2.5));
-      t += 2800;
-
-      // Orbit — look around this area
-      at(t, () => orbitAround(node.x, node.y, node.z, {
-        radius: 40, height: 12, duration: 3, arc: Math.PI * 0.5,
-      }));
-
-      // Flash connections while orbiting
-      const conns = getConnected(idx).slice(0, 3);
-      at(t + 400, () => setHoveredIndex(idx));
-      if (conns[0] != null) at(t + 1200, () => setHoveredIndex(conns[0]));
-      if (conns[1] != null) at(t + 2200, () => setHoveredIndex(conns[1]));
-      t += 2700; // Overlap — next action starts while orbit eases out
-      at(t, () => setHoveredIndex(null));
-      t += 200;
-
-      // Follow one link from this cluster — cross-category jump
-      if (conns.length > 0) {
-        const follow = conns.find((c) => n(c).category !== n(idx).category) ?? conns[0];
-        at(t, () => setHoveredIndex(follow));
-        t += 800;
-        at(t, () => {
-          setHoveredIndex(null);
-          flyTo(n(follow).x, n(follow).y, n(follow).z, 2);
-        });
-        t += 2200;
-        // Brief orbit at destination — overlap with next cluster's flyTo
-        at(t, () => orbitAround(n(follow).x, n(follow).y, n(follow).z, {
-          radius: 30, height: 8, duration: 2, arc: Math.PI * 0.3,
-        }));
-        t += 1800; // Next flyTo starts while this orbit eases out
-      }
-    }
-
-    // ── ACT 4: PULL BACK + FULL ORBIT ────────────────────────
-    at(t, () => recenter());
-    t += 2800;
-
-    at(t, () => orbitAround(0, 0, 0, {
-      radius: 280, height: 80, duration: 5, arc: Math.PI * 0.6,
-    }));
-    t += 4800; // Overlap into next act
-
-    // ── ACT 5: CITATION PATH ─────────────────────────────────
-    // The highlight — trace a path across clusters
-    if (path && path.length > 1) {
-      // Light up the path, fly to start
-      at(t, () => {
-        setCitationPath(path);
-        setHoveredIndex(path[0]);
-        flyTo(n(path[0]).x, n(path[0]).y, n(path[0]).z, 2.5);
-      });
-      t += 3000;
-
-      // Walk each hop — camera follows the golden line
-      for (let i = 1; i < path.length; i++) {
-        const node = n(path[i]);
-        at(t, () => {
-          setHoveredIndex(path[i]);
-          flyTo(node.x, node.y, node.z, 2.5);
-        });
-        t += 3200;
-      }
-
-      // Orbit around the destination
-      at(t, () => setHoveredIndex(null));
-      const lastNode = n(path[path.length - 1]);
-      at(t + 200, () => orbitAround(lastNode.x, lastNode.y, lastNode.z, {
-        radius: 45, height: 12, duration: 3.5, arc: Math.PI * 0.5,
-      }));
-      t += 4000;
-
-      // Clear and pull back
-      at(t, () => {
-        setCitationPath(null);
-        recenter();
-      });
-      t += 3500;
-    }
-
-    // ── ACT 6: THE FILTER ────────────────────────────────────
-    // Strip categories — orbit while they vanish
-    at(t, () => orbitAround(0, 0, 0, {
-      radius: 260, height: 90, duration: categories.length * 1.5 + 5,
-      arc: Math.PI * 0.8,
-    }));
-
-    const remaining = new Set(allCategoryIds);
-    for (let i = 0; i < categories.length - 1; i++) {
-      const cat = categories[i];
-      at(t, () => {
-        remaining.delete(cat);
-        setCategories(new Set(remaining));
-      });
-      t += 1500;
-    }
-
-    // Hold the lone survivor
-    t += 3000;
-
-    // Everything snaps back
-    at(t, () => setCategories(new Set(allCategoryIds)));
     t += 3500;
 
-    // ── FINALE: big orbit + fade out ─────────────────────────
+    // ── BEAT 2: DIVE INTO HERO (4–10s) ─────────────────────
+    // Fly to the most connected node, flash its connections
+    at(t, () => flyTo(n(heroIdx).x, n(heroIdx).y, n(heroIdx).z, 1.8));
+    t += 2000;
+    const heroConns = getConnected(heroIdx).slice(0, 3);
+    at(t, () => setHoveredIndex(heroIdx));
+    at(t + 800, () => setHoveredIndex(heroConns[0]));
+    at(t + 1600, () => setHoveredIndex(heroConns[1] ?? heroConns[0]));
+    t += 2200;
+    at(t, () => setHoveredIndex(null));
+
+    // Follow one link to a different category
+    {
+      const cross = heroConns.find((c) => n(c).category !== n(heroIdx).category) ?? heroConns[0];
+      if (cross != null) {
+        at(t, () => flyTo(n(cross).x, n(cross).y, n(cross).z, 1.5));
+        t += 1800;
+        at(t, () => setHoveredIndex(cross));
+        t += 800;
+        at(t, () => setHoveredIndex(null));
+      }
+    }
+
+    // ── BEAT 3: VISIT 2 CLUSTERS (10–18s) ──────────────────
+    // Quick fly-by of 2 different clusters with connection flash
+    for (let i = 1; i <= Math.min(2, topByCategory.length - 1); i++) {
+      const idx = topByCategory[i];
+      at(t, () => flyTo(n(idx).x, n(idx).y, n(idx).z, 1.5));
+      t += 1800;
+      at(t, () => orbitAround(n(idx).x, n(idx).y, n(idx).z, {
+        radius: 40, height: 12, duration: 2, arc: Math.PI * 0.4,
+      }));
+      const conns = getConnected(idx).slice(0, 2);
+      at(t + 300, () => setHoveredIndex(idx));
+      if (conns[0] != null) at(t + 1000, () => setHoveredIndex(conns[0]));
+      t += 1800;
+      at(t, () => setHoveredIndex(null));
+      t += 200;
+    }
+
+    // ── BEAT 4: CITATION PATH (18–26s) ─────────────────────
+    // Light up a path, walk 3 hops max
+    if (path && path.length > 1) {
+      const walkLen = Math.min(path.length, 4);
+      at(t, () => {
+        setCitationPath(path);
+        flyTo(n(path[0]).x, n(path[0]).y, n(path[0]).z, 1.5);
+      });
+      t += 1800;
+
+      for (let i = 1; i < walkLen; i++) {
+        const node = n(path[i]);
+        at(t, () => flyTo(node.x, node.y, node.z, 1.5));
+        t += 1800;
+      }
+
+      at(t, () => setCitationPath(null));
+      t += 200;
+    }
+
+    // ── BEAT 5: PULL BACK + FINALE (26–30s) ────────────────
     at(t, () => {
       setSelectedIndex(null);
       setHoveredIndex(null);
       recenter();
     });
-    t += 2800;
+    t += 2500;
 
-    // One last grand orbit
     at(t, () => orbitAround(0, 0, 0, {
-      radius: 320, height: 120, duration: 6, arc: Math.PI * 0.5,
+      radius: 320, height: 120, duration: 3, arc: Math.PI * 0.3,
     }));
-    t += 6500;
+    t += 3500;
 
     // ── END ──────────────────────────────────────────────────
     at(t, () => {
@@ -314,6 +197,10 @@ export default function DemoMode(props: DemoModeProps) {
       setActive(false);
       setCinematic(false);
       window.dispatchEvent(new Event('galaxy:demo:stop'));
+      // Redirect to the actual site (strip ?demo=true)
+      const url = new URL(window.location.href);
+      url.searchParams.delete('demo');
+      window.history.replaceState({}, '', url.toString());
     });
 
     console.log(`🎬 Showreel: ${Math.round(t / 1000)}s`);
