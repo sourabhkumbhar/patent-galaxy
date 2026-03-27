@@ -1,73 +1,102 @@
-# React + TypeScript + Vite
+# NodeVerse
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive 3D universe of knowledge. Fly through 100,000 research papers and patents visualized as stars in a galaxy, connected by real citation links.
 
-Currently, two official plugins are available:
+**[Live Demo](https://node-verse.vercel.app)** | **[Showtime (30s cinematic tour)](https://node-verse.vercel.app/?demo=true)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What is this?
 
-## React Compiler
+Every dot is a real paper or patent. Every line is a real citation. Papers and patents in the same field naturally cluster together like constellations. You can orbit, zoom, search, filter, and trace citation paths across the entire graph.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Currently loaded:
+- **100,000 arXiv papers** across 8 research fields (Computer Science, Mathematics, Physics, Statistics, Electrical Engineering, Quantitative Biology, Quantitative Finance, Economics)
+- **100,000 USPTO patents** across 9 CPC sections (Human Necessities, Operations & Transport, Chemistry, Textiles, Fixed Constructions, Mechanical Engineering, Physics, Electricity, Emerging Tech)
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **3D Galaxy Visualization** - 100k nodes rendered via custom GLSL shaders with glow, fog, and ambient dust
+- **Real Citation Links** - Animated connection lines between citing papers/patents
+- **Citation Path Tracer** - Find the shortest citation path between any two nodes (six degrees of separation for knowledge)
+- **Category Filtering** - Toggle research fields on/off, watch clusters appear and vanish
+- **Search** - Find papers by title, authors, or ID
+- **Cinematic Demo Mode** - Automated 30-second tour via `?demo=true`
+- **Dual Datasets** - Switch between papers and patents with one click
+- **Minimap** - Always-visible overview of the full galaxy
+- **Keyboard Navigation** - Arrow keys to jump between nodes, R to reset, Escape to deselect
+- **Mobile Support** - Touch-friendly with responsive panels
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **React 19** + TypeScript
+- **Three.js** via React Three Fiber + Drei
+- **Custom GLSL Shaders** for star rendering, connection pulses, and ambient dust
+- **GSAP** for camera animations (fly-to, orbit, cinematic sequences)
+- **Vite 8** for dev/build
+- **Vercel** for deployment
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting Started
+
+```bash
+# Clone
+git clone https://github.com/sourabhkumbhar/NodeVerse.git
+cd NodeVerse
+
+# Install
+npm install
+
+# Run
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:5173
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Bring Your Own Data
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+NodeVerse works with any dataset that has **nodes** and **edges**. Drop a JSON file in `public/data/` with this shape:
+
+```json
+{
+  "nodes": [
+    {
+      "id": "unique-id",
+      "title": "Node Title",
+      "category": "category-id",
+      "x": 10.5, "y": -3.2, "z": 7.8,
+      "citationCount": 42
+    }
+  ],
+  "edges": [
+    { "source": 0, "target": 1 }
+  ]
+}
 ```
+
+Then create a config in `src/config/` following the pattern in `patents.ts` or `papers.ts`.
+
+Movie recommendations, song samples, court cases, recipe ingredients, whatever. If your data has things and connections between those things, it becomes a galaxy.
+
+## Data Pipelines
+
+```bash
+# Fetch and process 100k USPTO patents
+npm run fetch-data
+
+# Fetch and process 100k arXiv papers
+npm run fetch-papers
+```
+
+Both pipelines sample, cluster, compute spatial positions, and output the JSON format NodeVerse expects.
+
+## Scaling
+
+Right now it's showing 100k out of millions. arXiv has close to 3 million papers. USPTO has tens of millions of patents. The engine can handle more.
+
+## Acknowledgments
+
+- [OpenAlex](https://openalex.org/) for open research paper metadata
+- [USPTO PatentsView](https://patentsview.org/) for freely available patent data
+- [Claude](https://claude.ai) for being the best pair programmer
+
+## License
+
+MIT
