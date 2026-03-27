@@ -65,7 +65,7 @@ export default function DemoMode(props: DemoModeProps) {
   function start() {
     const {
       data, filteredIndices, setSelectedIndex, setHoveredIndex,
-      setCategories, setCitationPath, allCategoryIds, setCinematic,
+      setCitationPath, allCategoryIds, setCinematic,
     } = propsRef.current;
 
     if (g.__demoRunning) return;
