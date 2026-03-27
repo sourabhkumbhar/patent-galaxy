@@ -16,6 +16,7 @@ interface DemoModeProps {
 const g = window as unknown as {
   __demoRunning?: boolean;
   __demoTimeouts?: ReturnType<typeof setTimeout>[];
+  __demoClaimToken?: number;
 };
 if (!g.__demoTimeouts) g.__demoTimeouts = [];
 
@@ -75,6 +76,9 @@ export default function DemoMode(props: DemoModeProps) {
     setCinematic(true);
     stop();
 
+    // Tell CameraController to lock out auto-orbit + controls
+    window.dispatchEvent(new Event('galaxy:demo:start'));
+
     // === PREP ===
     const categories = Array.from(allCategoryIds);
     const sorted = [...filteredIndices].sort(
@@ -115,12 +119,11 @@ export default function DemoMode(props: DemoModeProps) {
     at(t, () => orbitAround(0, 0, 0, {
       radius: 300, height: 100, duration: 6, arc: Math.PI * 0.7,
     }));
-    t += 7000;
+    t += 5500; // Overlap: start flyTo while orbit is still easing out
 
     // ── ACT 2: NOTICE THE HERO ───────────────────────────────
-    // Drift toward the biggest node, orbit around it
     at(t, () => flyTo(n(heroIdx).x, n(heroIdx).y, n(heroIdx).z, 2.5));
-    t += 3000;
+    t += 2800;
 
     // Orbit the hero, notice connections
     at(t, () => orbitAround(n(heroIdx).x, n(heroIdx).y, n(heroIdx).z, {
@@ -131,9 +134,9 @@ export default function DemoMode(props: DemoModeProps) {
     at(t + 1500, () => setHoveredIndex(heroConns[0]));
     at(t + 2500, () => setHoveredIndex(heroConns[1] ?? heroConns[0]));
     at(t + 3500, () => setHoveredIndex(heroConns[2] ?? null));
-    t += 4500;
+    t += 3800; // Overlap slightly with next action
     at(t, () => setHoveredIndex(null));
-    t += 300;
+    t += 200;
 
     // ── ACT 2b: FOLLOW THE LINKS ────────────────────────────
     // "Oh, what's that connected to?" — follow a connection chain
@@ -186,52 +189,49 @@ export default function DemoMode(props: DemoModeProps) {
       const node = n(idx);
 
       // Drift to this cluster
-      at(t, () => flyTo(node.x, node.y, node.z, 2));
-      t += 2500;
+      at(t, () => flyTo(node.x, node.y, node.z, 2.5));
+      t += 2800;
 
-      // Quick orbit — look around
+      // Orbit — look around this area
       at(t, () => orbitAround(node.x, node.y, node.z, {
-        radius: 40, height: 12, duration: 2.5, arc: Math.PI * 0.5,
+        radius: 40, height: 12, duration: 3, arc: Math.PI * 0.5,
       }));
 
       // Flash connections while orbiting
       const conns = getConnected(idx).slice(0, 3);
-      at(t + 300, () => setHoveredIndex(idx));
-      if (conns[0] != null) at(t + 1000, () => setHoveredIndex(conns[0]));
-      if (conns[1] != null) at(t + 1800, () => setHoveredIndex(conns[1]));
-      t += 2800;
+      at(t + 400, () => setHoveredIndex(idx));
+      if (conns[0] != null) at(t + 1200, () => setHoveredIndex(conns[0]));
+      if (conns[1] != null) at(t + 2200, () => setHoveredIndex(conns[1]));
+      t += 2700; // Overlap — next action starts while orbit eases out
       at(t, () => setHoveredIndex(null));
       t += 200;
 
-      // Follow one link from this cluster — "oh that's interesting"
+      // Follow one link from this cluster — cross-category jump
       if (conns.length > 0) {
         const follow = conns.find((c) => n(c).category !== n(idx).category) ?? conns[0];
-        at(t, () => {
-          setHoveredIndex(follow);
-        });
+        at(t, () => setHoveredIndex(follow));
         t += 800;
         at(t, () => {
           setHoveredIndex(null);
-          flyTo(n(follow).x, n(follow).y, n(follow).z, 1.8);
+          flyTo(n(follow).x, n(follow).y, n(follow).z, 2);
         });
         t += 2200;
-        // Quick look around
+        // Brief orbit at destination — overlap with next cluster's flyTo
         at(t, () => orbitAround(n(follow).x, n(follow).y, n(follow).z, {
-          radius: 30, height: 8, duration: 1.5, arc: Math.PI * 0.3,
+          radius: 30, height: 8, duration: 2, arc: Math.PI * 0.3,
         }));
-        t += 1800;
+        t += 1800; // Next flyTo starts while this orbit eases out
       }
     }
 
     // ── ACT 4: PULL BACK + FULL ORBIT ────────────────────────
-    // Step back, see everything, orbit the whole thing
     at(t, () => recenter());
-    t += 3000;
+    t += 2800;
 
     at(t, () => orbitAround(0, 0, 0, {
       radius: 280, height: 80, duration: 5, arc: Math.PI * 0.6,
     }));
-    t += 5500;
+    t += 4800; // Overlap into next act
 
     // ── ACT 5: CITATION PATH ─────────────────────────────────
     // The highlight — trace a path across clusters
@@ -239,32 +239,32 @@ export default function DemoMode(props: DemoModeProps) {
       // Light up the path, fly to start
       at(t, () => {
         setCitationPath(path);
-        setSelectedIndex(path[0]);
-        flyTo(n(path[0]).x, n(path[0]).y, n(path[0]).z, 2);
+        setHoveredIndex(path[0]);
+        flyTo(n(path[0]).x, n(path[0]).y, n(path[0]).z, 2.5);
       });
-      t += 2500;
+      t += 3000;
 
-      // Walk each hop — camera follows
+      // Walk each hop — camera follows the golden line
       for (let i = 1; i < path.length; i++) {
         const node = n(path[i]);
         at(t, () => {
-          setSelectedIndex(path[i]);
-          flyTo(node.x, node.y, node.z, 2);
+          setHoveredIndex(path[i]);
+          flyTo(node.x, node.y, node.z, 2.5);
         });
-        t += 2800;
+        t += 3200;
       }
 
       // Orbit around the destination
+      at(t, () => setHoveredIndex(null));
       const lastNode = n(path[path.length - 1]);
-      at(t, () => orbitAround(lastNode.x, lastNode.y, lastNode.z, {
-        radius: 45, height: 12, duration: 3, arc: Math.PI * 0.5,
+      at(t + 200, () => orbitAround(lastNode.x, lastNode.y, lastNode.z, {
+        radius: 45, height: 12, duration: 3.5, arc: Math.PI * 0.5,
       }));
-      t += 3500;
+      t += 4000;
 
       // Clear and pull back
       at(t, () => {
         setCitationPath(null);
-        setSelectedIndex(null);
         recenter();
       });
       t += 3500;
@@ -300,19 +300,20 @@ export default function DemoMode(props: DemoModeProps) {
       setHoveredIndex(null);
       recenter();
     });
-    t += 2500;
+    t += 2800;
 
     // One last grand orbit
     at(t, () => orbitAround(0, 0, 0, {
       radius: 320, height: 120, duration: 6, arc: Math.PI * 0.5,
     }));
-    t += 7000;
+    t += 6500;
 
     // ── END ──────────────────────────────────────────────────
     at(t, () => {
       g.__demoRunning = false;
       setActive(false);
       setCinematic(false);
+      window.dispatchEvent(new Event('galaxy:demo:stop'));
     });
 
     console.log(`🎬 Showreel: ${Math.round(t / 1000)}s`);
@@ -320,14 +321,22 @@ export default function DemoMode(props: DemoModeProps) {
 
   startRef.current = start;
 
-  // Auto-start from ?demo=true
+  // Auto-start from ?demo=true — token ensures only ONE instance wins
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('demo') !== 'true') return;
-    if (g.__demoRunning) return;
     if (props.filteredIndices.length === 0) return;
 
-    const timer = setTimeout(() => startRef.current(), 500);
+    // Each effect writes a unique token. Only the last writer's timer proceeds.
+    const token = Date.now() + Math.random();
+    g.__demoClaimToken = token;
+
+    const timer = setTimeout(() => {
+      if (g.__demoClaimToken !== token) return; // Another instance overwrote us
+      if (g.__demoRunning) return; // Already running
+      startRef.current();
+    }, 500);
+
     return () => { clearTimeout(timer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.filteredIndices.length]);
@@ -345,6 +354,7 @@ export default function DemoMode(props: DemoModeProps) {
       p.setHoveredIndex(null);
       p.setCitationPath(null);
       p.setCategories(new Set(p.allCategoryIds));
+      window.dispatchEvent(new Event('galaxy:demo:stop'));
       recenter();
     };
     return () => { delete w.startDemo; delete w.stopDemo; };

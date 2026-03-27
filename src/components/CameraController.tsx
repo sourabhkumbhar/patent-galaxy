@@ -11,15 +11,9 @@ interface CameraControllerProps {
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }
 
-const IDLE_TIMEOUT = 15_000; // 15 seconds before auto-orbit
-const ORBIT_SPEED = 0.08; // radians per second
+const IDLE_TIMEOUT = 15_000;
+const ORBIT_SPEED = 0.08;
 
-/**
- * Handles three camera behaviors:
- * 1. Cinematic intro fly-in on first load (GSAP)
- * 2. Fly-to animation when selecting a node
- * 3. Auto-orbit when idle for 15 seconds
- */
 export default function CameraController({
   nodes,
   selectedIndex,
@@ -27,7 +21,7 @@ export default function CameraController({
 }: CameraControllerProps) {
   const { camera } = useThree();
 
-  // Fly-to state
+  // Fly-to state (useFrame-driven, for node selection)
   const isAnimating = useRef(false);
   const targetPosition = useRef(new THREE.Vector3());
   const targetLookAt = useRef(new THREE.Vector3());
@@ -35,6 +29,10 @@ export default function CameraController({
   const startLookAt = useRef(new THREE.Vector3());
   const progress = useRef(0);
   const prevSelectedIndex = useRef<number | null>(null);
+
+  // GSAP-driven animation state — useFrame must not interfere
+  const gsapActive = useRef(false);
+  const activeTween = useRef<gsap.core.Tween | null>(null);
 
   // Intro state
   const hasPlayedIntro = useRef(false);
@@ -45,12 +43,23 @@ export default function CameraController({
   const isAutoOrbit = useRef(false);
   const orbitAngle = useRef(0);
 
+  // Demo mode flag — disables auto-orbit and controls re-enable
+  const demoMode = useRef(false);
+
+  // Kill any active GSAP tween before starting a new one
+  function killActiveTween() {
+    if (activeTween.current) {
+      activeTween.current.kill();
+      activeTween.current = null;
+    }
+    gsapActive.current = false;
+  }
+
   // ── Cinematic intro fly-in ──
   useEffect(() => {
     if (hasPlayedIntro.current) return;
     hasPlayedIntro.current = true;
 
-    // Start camera far out above the galaxy
     camera.position.set(0, 300, 800);
     camera.lookAt(0, 0, 0);
 
@@ -61,12 +70,11 @@ export default function CameraController({
 
     const proxy = { x: 0, y: 300, z: 800 };
 
-    gsap.to(proxy, {
-      x: 0,
-      y: 120,
-      z: 320,
+    activeTween.current = gsap.to(proxy, {
+      x: 0, y: 120, z: 320,
       duration: 3.5,
       ease: 'expo.out',
+      onStart: () => { gsapActive.current = true; },
       onUpdate: () => {
         camera.position.set(proxy.x, proxy.y, proxy.z);
         camera.lookAt(0, 0, 0);
@@ -76,8 +84,10 @@ export default function CameraController({
         }
       },
       onComplete: () => {
+        gsapActive.current = false;
+        activeTween.current = null;
         introComplete.current = true;
-        if (controlsRef.current) {
+        if (controlsRef.current && !demoMode.current) {
           controlsRef.current.enabled = true;
         }
         resetIdleTimer();
@@ -86,34 +96,39 @@ export default function CameraController({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Recenter camera ──
+  // ── Event-driven camera commands ──
   useEffect(() => {
     const handleRecenter = () => {
+      killActiveTween();
       isAutoOrbit.current = false;
       isAnimating.current = false;
 
       const proxy = {
-        x: camera.position.x,
-        y: camera.position.y,
-        z: camera.position.z,
+        x: camera.position.x, y: camera.position.y, z: camera.position.z,
+        tx: controlsRef.current?.target.x ?? 0,
+        ty: controlsRef.current?.target.y ?? 0,
+        tz: controlsRef.current?.target.z ?? 0,
       };
 
-      gsap.to(proxy, {
-        x: 0,
-        y: 120,
-        z: 320,
+      gsapActive.current = true;
+      activeTween.current = gsap.to(proxy, {
+        x: 0, y: 120, z: 320,
+        tx: 0, ty: 0, tz: 0,
         duration: 2.5,
         ease: 'power3.inOut',
         onUpdate: () => {
           camera.position.set(proxy.x, proxy.y, proxy.z);
-          camera.lookAt(0, 0, 0);
           if (controlsRef.current) {
-            controlsRef.current.target.set(0, 0, 0);
+            controlsRef.current.target.set(proxy.tx, proxy.ty, proxy.tz);
             controlsRef.current.update();
+          } else {
+            camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
           }
         },
         onComplete: () => {
-          if (controlsRef.current) {
+          gsapActive.current = false;
+          activeTween.current = null;
+          if (controlsRef.current && !demoMode.current) {
             controlsRef.current.enabled = true;
           }
           resetIdleTimer();
@@ -121,12 +136,12 @@ export default function CameraController({
       });
     };
 
-    // Fly camera to arbitrary position (used by demo mode — no node selection)
     const handleFlyTo = ((e: CustomEvent<{ x: number; y: number; z: number; duration?: number }>) => {
-      const { x, y, z, duration = 2.5 } = e.detail;
+      killActiveTween();
       isAutoOrbit.current = false;
-      isAnimating.current = true;
+      isAnimating.current = false; // Stop useFrame fly-to if any
 
+      const { x, y, z, duration = 2.5 } = e.detail;
       if (controlsRef.current) controlsRef.current.enabled = false;
 
       const proxy = {
@@ -136,8 +151,9 @@ export default function CameraController({
         tz: controlsRef.current?.target.z ?? 0,
       };
 
-      gsap.to(proxy, {
-        px: x, py: y + 15, pz: z + 40, // Offset: slightly above and behind the target
+      gsapActive.current = true;
+      activeTween.current = gsap.to(proxy, {
+        px: x, py: y + 15, pz: z + 40,
         tx: x, ty: y, tz: z,
         duration,
         ease: 'power2.inOut',
@@ -151,47 +167,47 @@ export default function CameraController({
           }
         },
         onComplete: () => {
-          isAnimating.current = false;
-          if (controlsRef.current) controlsRef.current.enabled = true;
+          gsapActive.current = false;
+          activeTween.current = null;
+          if (controlsRef.current && !demoMode.current) {
+            controlsRef.current.enabled = true;
+          }
           resetIdleTimer();
         },
       });
     }) as EventListener;
 
-    // Orbit camera around a target point — simulates human dragging to look around
-    // detail: { x, y, z (look-at center), radius, duration, arc (radians to sweep), startAngle? }
     const handleOrbit = ((e: CustomEvent<{
       x: number; y: number; z: number;
       radius?: number; height?: number;
       duration?: number; arc?: number;
     }>) => {
+      killActiveTween();
+      isAutoOrbit.current = false;
+      isAnimating.current = false;
+
       const {
         x, y, z,
-        radius = 60,
-        height = 20,
-        duration = 4,
-        arc = Math.PI * 0.6, // ~108 degrees sweep by default
+        radius = 60, height = 20,
+        duration = 4, arc = Math.PI * 0.6,
       } = e.detail;
 
-      isAutoOrbit.current = false;
-      isAnimating.current = true;
       if (controlsRef.current) controlsRef.current.enabled = false;
 
-      // Start angle: current camera direction relative to target
       const dx = camera.position.x - x;
       const dz = camera.position.z - z;
       const startAngle = Math.atan2(dz, dx);
 
       const proxy = { t: 0 };
-      gsap.to(proxy, {
+      gsapActive.current = true;
+      activeTween.current = gsap.to(proxy, {
         t: 1,
         duration,
-        ease: 'none', // Linear orbit — feels like steady hand drag
+        ease: 'power1.inOut', // Smooth start and stop — no jarring halt
         onUpdate: () => {
           const angle = startAngle + proxy.t * arc;
           const px = x + Math.cos(angle) * radius;
           const pz = z + Math.sin(angle) * radius;
-          // Slight height variation — human hand isn't perfectly level
           const py = y + height + Math.sin(proxy.t * Math.PI) * 8;
 
           camera.position.set(px, py, pz);
@@ -203,30 +219,52 @@ export default function CameraController({
           }
         },
         onComplete: () => {
-          isAnimating.current = false;
-          if (controlsRef.current) controlsRef.current.enabled = true;
+          gsapActive.current = false;
+          activeTween.current = null;
+          if (controlsRef.current && !demoMode.current) {
+            controlsRef.current.enabled = true;
+          }
           resetIdleTimer();
         },
       });
     }) as EventListener;
 
+    // Demo mode toggle — locks out auto-orbit and controls
+    const handleDemoStart = () => {
+      demoMode.current = true;
+      isAutoOrbit.current = false;
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      if (controlsRef.current) controlsRef.current.enabled = false;
+    };
+    const handleDemoStop = () => {
+      demoMode.current = false;
+      killActiveTween();
+      if (controlsRef.current) controlsRef.current.enabled = true;
+      resetIdleTimer();
+    };
+
     window.addEventListener('galaxy:recenter', handleRecenter);
     window.addEventListener('galaxy:flyto', handleFlyTo);
     window.addEventListener('galaxy:orbit', handleOrbit);
+    window.addEventListener('galaxy:demo:start', handleDemoStart);
+    window.addEventListener('galaxy:demo:stop', handleDemoStop);
     return () => {
       window.removeEventListener('galaxy:recenter', handleRecenter);
       window.removeEventListener('galaxy:flyto', handleFlyTo);
       window.removeEventListener('galaxy:orbit', handleOrbit);
+      window.removeEventListener('galaxy:demo:start', handleDemoStart);
+      window.removeEventListener('galaxy:demo:stop', handleDemoStop);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Auto-orbit idle detection ──
   function resetIdleTimer() {
+    if (demoMode.current) return; // Never auto-orbit during demo
     isAutoOrbit.current = false;
     if (idleTimer.current) clearTimeout(idleTimer.current);
     idleTimer.current = setTimeout(() => {
-      if (!isAnimating.current && introComplete.current) {
+      if (!isAnimating.current && !gsapActive.current && introComplete.current && !demoMode.current) {
         isAutoOrbit.current = true;
         orbitAngle.current = Math.atan2(camera.position.z, camera.position.x);
       }
@@ -234,7 +272,9 @@ export default function CameraController({
   }
 
   useEffect(() => {
-    const reset = () => resetIdleTimer();
+    const reset = () => {
+      if (!demoMode.current) resetIdleTimer();
+    };
     window.addEventListener('pointerdown', reset);
     window.addEventListener('pointermove', reset);
     window.addEventListener('wheel', reset);
@@ -250,8 +290,14 @@ export default function CameraController({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Fly-to selected node ──
+  // ── Fly-to selected node (useFrame-driven) ──
   useEffect(() => {
+    // Skip if GSAP is controlling camera (demo mode flyTo)
+    if (gsapActive.current || demoMode.current) {
+      prevSelectedIndex.current = selectedIndex;
+      return;
+    }
+
     if (selectedIndex === null || selectedIndex === prevSelectedIndex.current) {
       prevSelectedIndex.current = selectedIndex;
       return;
@@ -261,12 +307,10 @@ export default function CameraController({
     const node = nodes[selectedIndex];
     if (!node) return;
 
-    // Cancel auto-orbit
     isAutoOrbit.current = false;
     resetIdleTimer();
 
     const nodePos = new THREE.Vector3(node.x, node.y, node.z);
-
     const camToNode = new THREE.Vector3()
       .subVectors(nodePos, camera.position)
       .normalize();
@@ -278,12 +322,8 @@ export default function CameraController({
     if (controlsRef.current) {
       startLookAt.current.copy(controlsRef.current.target);
     } else {
-      const currentDir = new THREE.Vector3(0, 0, -1).applyQuaternion(
-        camera.quaternion
-      );
-      startLookAt.current
-        .copy(camera.position)
-        .add(currentDir.multiplyScalar(100));
+      const currentDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+      startLookAt.current.copy(camera.position).add(currentDir.multiplyScalar(100));
     }
 
     targetPosition.current.copy(nodePos).add(offset);
@@ -300,8 +340,11 @@ export default function CameraController({
 
   // ── Per-frame updates ──
   useFrame((_, delta) => {
+    // Never interfere when GSAP is driving the camera
+    if (gsapActive.current) return;
+
     // Auto-orbit when idle
-    if (isAutoOrbit.current && !isAnimating.current) {
+    if (isAutoOrbit.current && !isAnimating.current && !demoMode.current) {
       orbitAngle.current += delta * ORBIT_SPEED;
       const radius = Math.sqrt(
         camera.position.x * camera.position.x +
@@ -319,22 +362,16 @@ export default function CameraController({
       return;
     }
 
-    // Fly-to animation
+    // Fly-to animation (node selection, not demo)
     if (!isAnimating.current) return;
 
     progress.current = Math.min(1, progress.current + delta * 0.8);
     const t = easeInOutQuart(progress.current);
 
-    camera.position.lerpVectors(
-      startPosition.current,
-      targetPosition.current,
-      t
-    );
+    camera.position.lerpVectors(startPosition.current, targetPosition.current, t);
 
     const currentLookAt = new THREE.Vector3().lerpVectors(
-      startLookAt.current,
-      targetLookAt.current,
-      t
+      startLookAt.current, targetLookAt.current, t
     );
 
     if (controlsRef.current) {
@@ -346,7 +383,7 @@ export default function CameraController({
 
     if (progress.current >= 1) {
       isAnimating.current = false;
-      if (controlsRef.current) {
+      if (controlsRef.current && !demoMode.current) {
         controlsRef.current.enabled = true;
       }
       resetIdleTimer();
